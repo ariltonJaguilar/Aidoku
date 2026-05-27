@@ -134,10 +134,23 @@ class LibraryViewModel {
 
     var categories: [String] = []
     var filterGroups: [FilterGroup] = []
-    lazy var currentCategory: String? = UserDefaults.standard.string(forKey: "Library.currentCategory") {
+    lazy var currentCategory: String? = LibraryViewModel.resolveInitialCategory() {
         didSet {
             UserDefaults.standard.set(currentCategory, forKey: "Library.currentCategory")
         }
+    }
+
+    /// Determines the category shown on first access.
+    /// Priority: last-visited category → user's default category setting → nil (All).
+    private static func resolveInitialCategory() -> String? {
+        if let saved = UserDefaults.standard.string(forKey: "Library.currentCategory") {
+            return saved
+        }
+        if let defaultCat = UserDefaults.standard.string(forKey: "Library.defaultCategory"),
+           !defaultCat.isEmpty, defaultCat != "none" {
+            return defaultCat
+        }
+        return nil
     }
     var isInRealCategory: Bool {
         if let currentCategory, !currentCategory.isEmpty {

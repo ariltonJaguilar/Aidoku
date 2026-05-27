@@ -456,11 +456,12 @@ class LibraryViewController: OldMangaCollectionViewController {
             let globalHeader = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
-                    heightDimension: .absolute(40)
+                    heightDimension: .absolute(48)
                 ),
                 elementKind: UICollectionView.elementKindSectionHeader,
                 alignment: .top
             )
+            globalHeader.pinToVisibleBounds = true
             config.boundarySupplementaryItems = [globalHeader]
         }
         layout.configuration = config
