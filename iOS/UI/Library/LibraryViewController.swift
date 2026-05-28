@@ -58,6 +58,7 @@ class LibraryViewController: OldMangaCollectionViewController {
     private lazy var locked = viewModel.isCategoryLocked()
     private var ignoreOptionChange = false
     private var lastSearch: String?
+    private var hasFeaturedItem = false
 
     private let libraryUndoManager = UndoManager()
     override var undoManager: UndoManager { libraryUndoManager }
@@ -107,6 +108,7 @@ class LibraryViewController: OldMangaCollectionViewController {
 
     override func configure() {
         super.configure()
+        collectionView.register(FeaturedMangaCell.self, forCellWithReuseIdentifier: "FeaturedMangaCell")
 
         title = NSLocalizedString("LIBRARY")
 
@@ -431,6 +433,7 @@ class LibraryViewController: OldMangaCollectionViewController {
             guard let self, let item = notification.object as? (chapter: Chapter, page: Int) else { return }
             Task { @MainActor in
                 self.viewModel.mangaRead(sourceId: item.chapter.sourceId, mangaId: item.chapter.mangaId)
+                await self.viewModel.fetchFeaturedManga()
                 self.updateDataSource()
             }
         }
@@ -445,13 +448,75 @@ class LibraryViewController: OldMangaCollectionViewController {
         }
     }
 
-    // collection view layout with header
+    // data source that also handles the featured manga cell
+    override func makeDataSource() -> UICollectionViewDiffableDataSource<Section, MangaInfo> {
+        UICollectionViewDiffableDataSource(
+            collectionView: collectionView
+        ) { [weak self] collectionView, indexPath, item in
+            guard let self else { return nil }
+            let sectionId = self.dataSource.sectionIdentifier(for: indexPath.section)
+            // The featured card is always the first item of the regular section (grid mode only)
+            let isFeaturedCard = !self.usesListLayout
+                && sectionId == .regular
+                && indexPath.item == 0
+                && self.hasFeaturedItem
+                && item.mangaId == self.viewModel.featuredManga?.mangaId
+                && item.sourceId == self.viewModel.featuredManga?.sourceId
+            if isFeaturedCard {
+                // swiftlint:disable:next force_cast
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: "FeaturedMangaCell",
+                    for: indexPath
+                ) as! FeaturedMangaCell
+                self.configure(featuredCell: cell, info: item)
+                return cell
+            } else if self.usesListLayout {
+                // swiftlint:disable:next force_cast
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: "MangaListCell",
+                    for: indexPath
+                ) as! MangaListCell
+                self.configure(cell: cell, info: item, indexPath: indexPath)
+                return cell
+            } else {
+                // swiftlint:disable:next force_cast
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: "MangaGridCell",
+                    for: indexPath
+                ) as! MangaGridCell
+                self.configure(cell: cell, info: item, indexPath: indexPath)
+                return cell
+            }
+        }
+    }
+
+    // collection view layout with category header
     override func makeCollectionViewLayout() -> UICollectionViewLayout {
-        let layout = super.makeCollectionViewLayout()
-        guard let layout = layout as? UICollectionViewCompositionalLayout else { return layout }
+        let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
+            guard let self else { return nil }
+            switch self.dataSource.sectionIdentifier(for: sectionIndex) {
+                case .pinned:
+                    if self.usesListLayout {
+                        return OldMangaCollectionViewController.makeListLayoutSection(environment: environment)
+                    } else {
+                        return OldMangaCollectionViewController.makeGridLayoutSection(environment: environment)
+                    }
+                case .regular:
+                    if self.usesListLayout {
+                        return OldMangaCollectionViewController.makeListLayoutSection(environment: environment)
+                    } else if self.hasFeaturedItem {
+                        let itemCount = self.collectionView.numberOfItems(inSection: sectionIndex)
+                        return self.makeMosaicLayoutSection(environment: environment, itemCount: itemCount)
+                    } else {
+                        return OldMangaCollectionViewController.makeGridLayoutSection(environment: environment)
+                    }
+                default:
+                    return nil
+            }
+        }
 
         let config = UICollectionViewCompositionalLayoutConfiguration()
-        config.interSectionSpacing = layout.configuration.interSectionSpacing
+        config.interSectionSpacing = OldMangaCollectionViewController.itemSpacing + OldMangaCollectionViewController.sectionSpacing
         if !viewModel.categories.isEmpty || !viewModel.filterGroups.isEmpty {
             let globalHeader = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: NSCollectionLayoutSize(
@@ -467,6 +532,85 @@ class LibraryViewController: OldMangaCollectionViewController {
         layout.configuration = config
 
         return layout
+    }
+
+    // Mosaic layout: item 0 occupies 2×2 cells; remaining items fill adjacent columns (rows 0-1)
+    // and then a standard N-column grid from row 2 onward.
+    private func makeMosaicLayoutSection(
+        environment: NSCollectionLayoutEnvironment,
+        itemCount: Int
+    ) -> NSCollectionLayoutSection {
+        guard itemCount > 0 else {
+            return OldMangaCollectionViewController.makeGridLayoutSection(environment: environment)
+        }
+        let N = computeItemsPerRow(environment: environment)
+        let inset: CGFloat = 16
+        let spacing = OldMangaCollectionViewController.itemSpacing
+        let totalWidth = environment.container.contentSize.width - 2 * inset
+        let cellWidth = (totalWidth - spacing * CGFloat(N - 1)) / CGFloat(N)
+        let cellHeight = cellWidth * 3.0 / 2.0
+
+        var frames: [CGRect] = []
+
+        // Item 0: featured card spans min(2, N) columns × 2 rows
+        let featuredCols = min(2, N)
+        let featuredWidth = CGFloat(featuredCols) * cellWidth + spacing * CGFloat(featuredCols - 1)
+        let featuredHeight = 2.0 * cellHeight + spacing
+        frames.append(CGRect(x: 0, y: 0, width: featuredWidth, height: featuredHeight))
+
+        // Adjacent items (to the right of the featured card, two rows each)
+        let adjacentCount = 2 * (N - featuredCols)
+        for i in 0..<adjacentCount {
+            let col = featuredCols + i / 2
+            let row = i % 2
+            let x = CGFloat(col) * (cellWidth + spacing)
+            let y = CGFloat(row) * (cellHeight + spacing)
+            frames.append(CGRect(x: x, y: y, width: cellWidth, height: cellHeight))
+        }
+
+        // Remaining items: standard N-column grid starting at row 2
+        let placedCount = 1 + adjacentCount
+        for i in min(placedCount, itemCount)..<itemCount {
+            let idx = i - placedCount
+            let col = idx % N
+            let row = 2 + idx / N
+            let x = CGFloat(col) * (cellWidth + spacing)
+            let y = CGFloat(row) * (cellHeight + spacing)
+            frames.append(CGRect(x: x, y: y, width: cellWidth, height: cellHeight))
+        }
+
+        let totalHeight = frames.map { $0.maxY }.max() ?? featuredHeight
+
+        let customGroup = NSCollectionLayoutGroup.custom(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(totalHeight)
+            )
+        ) { _ in
+            frames.enumerated().map { _, frame in
+                NSCollectionLayoutGroupCustomItem(frame: frame)
+            }
+        }
+
+        let section = NSCollectionLayoutSection(group: customGroup)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: inset, bottom: 0, trailing: inset)
+        return section
+    }
+
+    private func computeItemsPerRow(environment: NSCollectionLayoutEnvironment) -> Int {
+        let layout = UserDefaults.standard.string(forKey: "Appearance.layout")
+        let containerWidth = environment.container.contentSize.width
+        switch layout {
+        case "standard":
+            return max(1, Int(floor(containerWidth / 180)))
+        case "compact":
+            let idealWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 150 : 120
+            return max(1, Int(floor(containerWidth / idealWidth)))
+        default:
+            let isLandscape = containerWidth > environment.container.contentSize.height
+            let key = isLandscape ? "Appearance.customLandscapeRows" : "Appearance.customPortraitRows"
+            return max(1, UserDefaults.standard.integer(forKey: key))
+        }
     }
 
     // cells with badges
@@ -486,6 +630,20 @@ class LibraryViewController: OldMangaCollectionViewController {
         cell.badgeNumber2 = viewModel.badgeType.contains(.downloaded) ? info.downloads : 0
 
         cell.setEditing(isEditing, animated: false)
+    }
+
+    func configure(featuredCell cell: FeaturedMangaCell, info: MangaInfo) {
+        cell.sourceId = info.sourceId
+        cell.mangaId = info.mangaId
+        cell.title = info.title
+
+        Task {
+            await cell.loadImage(url: info.coverUrl)
+        }
+
+        cell.onContinueReading = { [weak self] in
+            self?.openReader(for: info)
+        }
     }
 
     override func setEditing(_ editing: Bool, animated: Bool) {
@@ -749,17 +907,58 @@ extension LibraryViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, MangaInfo>()
 
         if !locked {
-            if !viewModel.pinnedManga.isEmpty {
-                snapshot.appendSections(Section.allCases)
-                snapshot.appendItems(viewModel.pinnedManga, toSection: .pinned)
+            let isSearching = !(navigationItem.searchController?.searchBar.text?.isEmpty ?? true)
+
+            // Featured card: first item of the regular section in grid mode only
+            let featured: MangaInfo?
+            if isSearching || usesListLayout {
+                featured = nil
+            } else if let fm = viewModel.featuredManga {
+                // Re-look up from current arrays to get the freshest MangaInfo hash
+                featured = (viewModel.manga + viewModel.pinnedManga).first {
+                    $0.mangaId == fm.mangaId && $0.sourceId == fm.sourceId
+                }
+            } else {
+                featured = nil
+            }
+
+            // Build pinned and regular lists, excluding featured from pinned
+            let pinnedItems: [MangaInfo]
+            let regularItems: [MangaInfo]
+
+            if let featured {
+                pinnedItems = viewModel.pinnedManga.filter {
+                    $0.mangaId != featured.mangaId || $0.sourceId != featured.sourceId
+                }
+                // Featured manga goes first; remaining manga (excluding featured) follow
+                let others = viewModel.manga.filter {
+                    $0.mangaId != featured.mangaId || $0.sourceId != featured.sourceId
+                }
+                regularItems = [featured] + others
+            } else {
+                pinnedItems = viewModel.pinnedManga
+                regularItems = viewModel.manga
+            }
+
+            if !pinnedItems.isEmpty {
+                snapshot.appendSections([.pinned, .regular])
+                snapshot.appendItems(pinnedItems, toSection: .pinned)
             } else {
                 snapshot.appendSections([.regular])
             }
 
-            snapshot.appendItems(viewModel.manga, toSection: .regular)
-        }
+            snapshot.appendItems(regularItems, toSection: .regular)
 
-        dataSource.apply(snapshot)
+            // Update layout if featured state changed
+            let newHasFeaturedItem = featured != nil
+            dataSource.apply(snapshot)
+            if newHasFeaturedItem != hasFeaturedItem {
+                hasFeaturedItem = newHasFeaturedItem
+                collectionView.collectionViewLayout.invalidateLayout()
+            }
+        } else {
+            dataSource.apply(snapshot)
+        }
 
         // handle empty library or category
         if navigationItem.searchController?.searchBar.text?.isEmpty ?? true {
@@ -1294,101 +1493,17 @@ extension LibraryViewController {
             return
         }
 
-        if UserDefaults.standard.bool(forKey: "Library.opensReaderView") {
-            Task {
-                // get next chapter to read
-                let history = await CoreDataManager.shared.getReadingHistory(
-                    sourceId: info.sourceId,
-                    mangaId: info.mangaId
-                )
-                let chapters = await CoreDataManager.shared.getChapters(sourceId: info.sourceId, mangaId: info.mangaId)
-                    .map { $0.toNew() }
-
-                let filters = CoreDataManager.shared.getMangaChapterFilters(
-                    sourceId: info.sourceId,
-                    mangaId: info.mangaId
-                )
-                let sortOption = ChapterSortOption(flags: filters.flags)
-                let sortAscending = filters.flags & ChapterFlagMask.sortAscending != 0
-
-                let sortedChapters: [AidokuRunner.Chapter] = {
-                    switch sortOption {
-                        case .sourceOrder:
-                            return sortAscending ? chapters.reversed() : chapters
-                        case .chapter:
-                            return chapters.sorted {
-                                let lhs = $0.chapterNumber ?? -1
-                                let rhs = $1.chapterNumber ?? -1
-                                return sortAscending ? lhs < rhs : lhs > rhs
-                            }
-                        case .uploadDate:
-                            return chapters.sorted {
-                                let lhs = $0.dateUploaded ?? .distantPast
-                                let rhs = $1.dateUploaded ?? .distantPast
-                                return sortAscending ? lhs < rhs : lhs > rhs
-                            }
-                    }
-                }()
-
-                let manga = AidokuRunner.Manga(
-                    sourceKey: info.sourceId,
-                    key: info.mangaId,
-                    title: info.title ?? "",
-                    chapters: sortedChapters
-                )
-
-                let nextChapter = MangaManager.shared.getNextChapter(
-                    manga: manga,
-                    chapters: sortedChapters,
-                    readingHistory: history,
-                    sortAscending: sortAscending
-                )
-
-                if let chapter = nextChapter {
-                    // open reader view
-                    guard let source = SourceManager.shared.source(for: info.sourceId) else {
-                        return
-                    }
-                    let manga = AidokuRunner.Manga(
-                        sourceKey: info.sourceId,
-                        key: info.mangaId,
-                        title: info.title ?? "",
-                        chapters: sortedChapters
-                    )
-                    let readerController = ReaderViewController(
-                        source: source,
-                        manga: manga,
-                        chapter: chapter
-                    )
-                    let navigationController = ReaderNavigationController(
-                        readerViewController: readerController,
-                        mangaInfo: info
-                    )
-                    if #available(iOS 18.0, *) {
-                        navigationController.preferredTransition = .zoom { context in
-                            guard
-                                let navigationController = context.zoomedViewController as? ReaderNavigationController,
-                                let info = navigationController.mangaInfo,
-                                let indexPath = self.dataSource.indexPath(for: info),
-                                let cell = self.collectionView.cellForItem(at: indexPath)
-                            else {
-                                return nil
-                            }
-                            if let cell = cell as? MangaListCell {
-                                return cell.coverImageView
-                            } else {
-                                return cell.contentView
-                            }
-                        }
-                    }
-                    navigationController.modalPresentationStyle = .fullScreen
-                    present(navigationController, animated: true)
-                } else {
-                    // no chapter to read, open manga page
-                    let indexPath = dataSource.indexPath(for: info) ?? indexPath // get new index path in case it changed
-                    super.collectionView(collectionView, didSelectItemAt: indexPath)
-                }
-            }
+        // Tapping the featured card always opens manga detail (Continue Reading button opens reader)
+        let isFeaturedCard = !usesListLayout
+            && hasFeaturedItem
+            && dataSource.sectionIdentifier(for: indexPath.section) == .regular
+            && indexPath.item == 0
+            && info.mangaId == viewModel.featuredManga?.mangaId
+            && info.sourceId == viewModel.featuredManga?.sourceId
+        if isFeaturedCard {
+            openInfoView(info: info)
+        } else if UserDefaults.standard.bool(forKey: "Library.opensReaderView") {
+            openReader(for: info)
         } else {
             super.collectionView(collectionView, didSelectItemAt: indexPath)
         }
@@ -1404,6 +1519,101 @@ extension LibraryViewController {
         collectionView.deselectItem(at: indexPath, animated: true)
     }
 
+    func openReader(for info: MangaInfo) {
+        Task {
+            let history = await CoreDataManager.shared.getReadingHistory(
+                sourceId: info.sourceId,
+                mangaId: info.mangaId
+            )
+            let chapters = await CoreDataManager.shared.getChapters(sourceId: info.sourceId, mangaId: info.mangaId)
+                .map { $0.toNew() }
+
+            let filters = CoreDataManager.shared.getMangaChapterFilters(
+                sourceId: info.sourceId,
+                mangaId: info.mangaId
+            )
+            let sortOption = ChapterSortOption(flags: filters.flags)
+            let sortAscending = filters.flags & ChapterFlagMask.sortAscending != 0
+
+            let sortedChapters: [AidokuRunner.Chapter] = {
+                switch sortOption {
+                    case .sourceOrder:
+                        return sortAscending ? chapters.reversed() : chapters
+                    case .chapter:
+                        return chapters.sorted {
+                            let lhs = $0.chapterNumber ?? -1
+                            let rhs = $1.chapterNumber ?? -1
+                            return sortAscending ? lhs < rhs : lhs > rhs
+                        }
+                    case .uploadDate:
+                        return chapters.sorted {
+                            let lhs = $0.dateUploaded ?? .distantPast
+                            let rhs = $1.dateUploaded ?? .distantPast
+                            return sortAscending ? lhs < rhs : lhs > rhs
+                        }
+                }
+            }()
+
+            let manga = AidokuRunner.Manga(
+                sourceKey: info.sourceId,
+                key: info.mangaId,
+                title: info.title ?? "",
+                chapters: sortedChapters
+            )
+
+            let nextChapter = MangaManager.shared.getNextChapter(
+                manga: manga,
+                chapters: sortedChapters,
+                readingHistory: history,
+                sortAscending: sortAscending
+            )
+
+            guard let chapter = nextChapter else {
+                // No chapter to read – open manga detail page instead
+                openInfoView(info: info)
+                return
+            }
+            guard let source = SourceManager.shared.source(for: info.sourceId) else {
+                return
+            }
+            let mangaWithChapters = AidokuRunner.Manga(
+                sourceKey: info.sourceId,
+                key: info.mangaId,
+                title: info.title ?? "",
+                chapters: sortedChapters
+            )
+            let readerController = ReaderViewController(
+                source: source,
+                manga: mangaWithChapters,
+                chapter: chapter
+            )
+            let navigationController = ReaderNavigationController(
+                readerViewController: readerController,
+                mangaInfo: info
+            )
+            if #available(iOS 18.0, *) {
+                navigationController.preferredTransition = .zoom { [weak self] context in
+                    guard
+                        let self,
+                        let navigationController = context.zoomedViewController as? ReaderNavigationController,
+                        let info = navigationController.mangaInfo,
+                        let indexPath = self.dataSource.indexPath(for: info),
+                        let cell = self.collectionView.cellForItem(at: indexPath)
+                    else {
+                        return nil
+                    }
+                    if let cell = cell as? MangaListCell {
+                        return cell.coverImageView
+                    } else {
+                        return cell.contentView
+                    }
+                }
+            }
+            navigationController.modalPresentationStyle = .fullScreen
+            present(navigationController, animated: true)
+        }
+    }
+
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
         if isEditing {
             let cell = collectionView.cellForItem(at: indexPath)
@@ -1417,20 +1627,35 @@ extension LibraryViewController {
         }
     }
 
-    // don't highlighting when selecting during editing
+    // don't highlighting when selecting during editing; handle the featured cell separately
     override func collectionView(_ collectionView: UICollectionView, didHighlightItemAt indexPath: IndexPath) {
         guard !isEditing else { return }
-        super.collectionView(collectionView, didHighlightItemAt: indexPath)
+        if let cell = collectionView.cellForItem(at: indexPath) as? FeaturedMangaCell {
+            cell.highlight()
+        } else {
+            super.collectionView(collectionView, didHighlightItemAt: indexPath)
+        }
+    }
+
+    override func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
+        if let cell = collectionView.cellForItem(at: indexPath) as? FeaturedMangaCell {
+            cell.unhighlight(animated: true)
+        } else {
+            super.collectionView(collectionView, didUnhighlightItemAt: indexPath)
+        }
     }
 
     private func mangaInfo(at path: IndexPath) -> MangaInfo {
-        let manga: [MangaInfo] = if path.section == 0 && !viewModel.pinnedManga.isEmpty {
-            viewModel.pinnedManga
-        } else {
-            viewModel.manga
+        // Use the data source as the single source of truth; handles featured, pinned, and regular sections
+        if let item = dataSource.itemIdentifier(for: path) {
+            return item
         }
-
-        return manga[path.row]
+        // Fallback (should not normally happen)
+        let section = dataSource.sectionIdentifier(for: path.section)
+        if section == .pinned {
+            return viewModel.pinnedManga[path.row]
+        }
+        return viewModel.manga[path.row]
     }
 
     func collectionView(

@@ -81,7 +81,7 @@ class OldMangaCollectionViewController: BaseCollectionViewController {
         let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
             guard let self else { return nil }
             switch Section(rawValue: sectionIndex) {
-                case .pinned, .regular:
+                case .pinned, .regular, .featured:
                     if self.usesListLayout {
                         return Self.makeListLayoutSection(environment: environment)
                     } else {
@@ -95,6 +95,30 @@ class OldMangaCollectionViewController: BaseCollectionViewController {
         config.interSectionSpacing = Self.itemSpacing + Self.sectionSpacing
         layout.configuration = config
         return layout
+    }
+
+    func makeDataSource() -> UICollectionViewDiffableDataSource<Section, MangaInfo> {
+        UICollectionViewDiffableDataSource(
+            collectionView: collectionView
+        ) { [weak self] collectionView, indexPath, item in
+            // swiftlint:disable force_cast
+            if self?.usesListLayout ?? false {
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: "MangaListCell",
+                    for: indexPath
+                ) as! MangaListCell
+                self?.configure(cell: cell, info: item, indexPath: indexPath)
+                return cell
+            } else {
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: "MangaGridCell",
+                    for: indexPath
+                ) as! MangaGridCell
+                self?.configure(cell: cell, info: item, indexPath: indexPath)
+                return cell
+            }
+            // swiftlint:enable force_cast
+        }
     }
 }
 
@@ -258,30 +282,7 @@ extension OldMangaCollectionViewController {
     enum Section: Int, CaseIterable {
         case pinned
         case regular
-    }
-
-    func makeDataSource() -> UICollectionViewDiffableDataSource<Section, MangaInfo> {
-        UICollectionViewDiffableDataSource(
-            collectionView: collectionView
-        ) { [weak self] collectionView, indexPath, item in
-            // swiftlint:disable force_cast
-            if self?.usesListLayout ?? false {
-                let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: "MangaListCell",
-                    for: indexPath
-                ) as! MangaListCell
-                self?.configure(cell: cell, info: item, indexPath: indexPath)
-                return cell
-            } else {
-                let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: "MangaGridCell",
-                    for: indexPath
-                ) as! MangaGridCell
-                self?.configure(cell: cell, info: item, indexPath: indexPath)
-                return cell
-            }
-            // swiftlint:enable force_cast
-        }
+        case featured
     }
 }
 

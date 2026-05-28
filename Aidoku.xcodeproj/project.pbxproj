@@ -43,6 +43,7 @@
 		FB0051282FB7F926004B4A6F /* MigrateSingleSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0051272FB7F91E004B4A6F /* MigrateSingleSearchView.swift */; };
 		FB0051422FB970FF004B4A6F /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0051412FB970FD004B4A6F /* SafariView.swift */; };
 		FB02E1EB288CC1DA00B9E2DE /* LibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB02E1EA288CC1DA00B9E2DE /* LibraryViewController.swift */; };
+		FB02E1EC288CC1DA00B9E2DF /* FeaturedMangaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB02E1ED288CC1DA00B9E2DF /* FeaturedMangaCell.swift */; };
 		FB02E1F2288D7BE900B9E2DE /* MangaGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB02E1F1288D7BE900B9E2DE /* MangaGridCell.swift */; };
 		FB02E1F4288D7C0C00B9E2DE /* Manga.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB02E1F3288D7C0C00B9E2DE /* Manga.swift */; };
 		FB034E942EAAB6A90072EEEB /* OIDCLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB034E932EAAB6A50072EEEB /* OIDCLoginController.swift */; };
@@ -662,6 +663,7 @@
 		FB0051272FB7F91E004B4A6F /* MigrateSingleSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrateSingleSearchView.swift; sourceTree = "<group>"; };
 		FB0051412FB970FD004B4A6F /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		FB02E1EA288CC1DA00B9E2DE /* LibraryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewController.swift; sourceTree = "<group>"; };
+		FB02E1ED288CC1DA00B9E2DF /* FeaturedMangaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturedMangaCell.swift; sourceTree = "<group>"; };
 		FB02E1F1288D7BE900B9E2DE /* MangaGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaGridCell.swift; sourceTree = "<group>"; };
 		FB02E1F3288D7C0C00B9E2DE /* Manga.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Manga.swift; sourceTree = "<group>"; };
 		FB034E932EAAB6A50072EEEB /* OIDCLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OIDCLoginController.swift; sourceTree = "<group>"; };
@@ -1242,6 +1244,7 @@
 			isa = PBXGroup;
 			children = (
 				FB02E1EA288CC1DA00B9E2DE /* LibraryViewController.swift */,
+				FB02E1ED288CC1DA00B9E2DF /* FeaturedMangaCell.swift */,
 				FBE40E2E288EDDB700CCA4DC /* LibraryViewModel.swift */,
 				FB17114229653B3E00AD523D /* AddToCategoryViewController.swift */,
 			);
@@ -2865,6 +2868,7 @@
 				FBCA1B2A2889864E007149C5 /* View.swift in Sources */,
 				FB4ADCA42814E5E700F6D7FB /* NSLocalizedString.swift in Sources */,
 				FB02E1EB288CC1DA00B9E2DE /* LibraryViewController.swift in Sources */,
+				FB02E1EC288CC1DA00B9E2DF /* FeaturedMangaCell.swift in Sources */,
 				FB7C288C2E8312D0009FF6AF /* UnavailableView.swift in Sources */,
 				FB4EB4FF28AA959C00FDEA4A /* CoreDataManager+Track.swift in Sources */,
 				FB05182D2E09B37D00CEE275 /* GIFImageNode.swift in Sources */,

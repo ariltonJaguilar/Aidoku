@@ -118,14 +118,15 @@ extension MangaManager {
                 LogManager.logger.error("MangaManager.addToLibrary: \(error.localizedDescription)")
             }
         }
-        // add enhanced trackers
-        await TrackerManager.shared.bindEnhancedTrackers(manga: manga)
 
         NotificationCenter.default.post(
             name: .addToLibrary,
             object: manga.toOld()
         )
         NotificationCenter.default.post(name: .updateLibrary, object: nil)
+
+        // add enhanced trackers (after notifying library so UI updates immediately)
+        await TrackerManager.shared.bindEnhancedTrackers(manga: manga)
     }
 
     func removeFromLibrary(sourceId: String, mangaId: String) async {

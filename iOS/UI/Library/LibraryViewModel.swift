@@ -13,6 +13,7 @@ import UIKit
 class LibraryViewModel {
     var manga: [MangaInfo] = []
     var pinnedManga: [MangaInfo] = []
+    var featuredManga: MangaInfo?
     var sourceKeys: [String] = []
 
     // temporary storage when searching
@@ -421,6 +422,8 @@ extension LibraryViewModel {
         if !searchQuery.isEmpty {
             await search(query: searchQuery)
         }
+
+        await fetchFeaturedManga()
     }
 
     // updates unread counts and manga sort order for history change
@@ -747,6 +750,13 @@ extension LibraryViewModel {
     }
 
     func mangaRead(sourceId: String, mangaId: String) {
+        // Update featured manga to reflect the most recently read
+        // Also check storedManga in case a search is active
+        let allManga = manga + pinnedManga + (storedManga ?? []) + (storedPinnedManga ?? [])
+        if let found = allManga.first(where: { $0.mangaId == mangaId && $0.sourceId == sourceId }) {
+            featuredManga = found
+        }
+
         guard sortMethod == .lastRead else { return }
         if let pinnedIndex = pinnedManga.firstIndex(where: { $0.mangaId == mangaId && $0.sourceId == sourceId }) {
             let manga = pinnedManga.remove(at: pinnedIndex)
@@ -754,6 +764,47 @@ extension LibraryViewModel {
         } else if let index = manga.firstIndex(where: { $0.mangaId == mangaId && $0.sourceId == sourceId }) {
             let manga = manga.remove(at: index)
             self.manga.insert(manga, at: 0)
+        }
+    }
+
+    func fetchFeaturedManga() async {
+        let currentCategory = (isInUncategorizedCategory || isInRealCategory) ? self.currentCategory : nil
+
+        let identifiers = await CoreDataManager.shared.container.performBackgroundTask { @Sendable context in
+            let request = LibraryMangaObject.fetchRequest()
+
+            var predicates: [NSPredicate] = [
+                NSPredicate(format: "manga != nil"),
+                NSPredicate(format: "lastRead != nil"),
+                NSPredicate(format: "lastRead > %@", Date.distantPast as NSDate)
+            ]
+
+            if let currentCategory {
+                if currentCategory.isEmpty {
+                    predicates.append(NSPredicate(format: "categories.@count == 0"))
+                } else {
+                    predicates.append(NSPredicate(format: "ANY categories.title == %@", currentCategory))
+                }
+            }
+
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+            request.sortDescriptors = [NSSortDescriptor(key: "lastRead", ascending: false)]
+            request.fetchLimit = 1
+
+            guard let object = (try? context.fetch(request))?.first,
+                  let mangaObject = object.manga else { return nil as (String, String)? }
+
+            return (mangaObject.sourceId, mangaObject.id) as (String, String)?
+        }
+
+        if let identifiers {
+            // Search in all manga, including stored arrays when a search is active
+            let allManga = manga + pinnedManga + (storedManga ?? []) + (storedPinnedManga ?? [])
+            featuredManga = allManga.first {
+                $0.sourceId == identifiers.0 && $0.mangaId == identifiers.1
+            }
+        } else {
+            featuredManga = nil
         }
     }
 
