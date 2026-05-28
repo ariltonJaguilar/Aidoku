@@ -15,28 +15,24 @@ private struct CoverView: View {
     let height: CGFloat
     let cornerRadius: CGFloat
 
-    /// Prefer the locally cached file (file://) so no network is needed.
-    /// Falls back to the remote URL if the file doesn't exist yet.
-    private var resolvedURL: URL? {
-        if let containerURL = FileManager.default.containerURL(
+    /// AsyncImage does not support file:// URLs in widget/Live Activity extensions.
+    /// Read the cached JPEG synchronously via UIImage(contentsOfFile:) instead.
+    private var cachedImage: Image? {
+        guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: "group.app.aidoku.Aidoku"
-        ) {
-            let fileURL = containerURL.appendingPathComponent("widget_cover.jpg")
-            if FileManager.default.fileExists(atPath: fileURL.path) {
-                return fileURL
-            }
-        }
-        return URL(string: url)
+        ) else { return nil }
+        let filePath = containerURL.appendingPathComponent("widget_cover.jpg").path
+        guard let uiImage = UIImage(contentsOfFile: filePath) else { return nil }
+        return Image(uiImage: uiImage)
     }
 
     var body: some View {
-        AsyncImage(url: resolvedURL) { phase in
-            switch phase {
-            case .success(let image):
+        Group {
+            if let image = cachedImage {
                 image
                     .resizable()
                     .scaledToFill()
-            default:
+            } else {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: cornerRadius * 3))
                     .foregroundStyle(.secondary)

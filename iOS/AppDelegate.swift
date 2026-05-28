@@ -525,16 +525,28 @@ extension AppDelegate {
                         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                         let action = components?.queryItems?.first(where: { $0.name == "action" })?.value.flatMap(MangaView.OpenAction.init)
 
-                        navigationController.pushViewController(
-                            MangaViewController(
-                                source: source,
-                                manga: manga,
-                                parent: navigationController.topViewController,
-                                chapterKey: chapterKey, // /sourceId/mangaId/chapterId
-                                openAction: action // ?action={read,readNext,readLatest}
-                            ),
-                            animated: true
-                        )
+                        // Avoid stacking a duplicate MangaViewController for the same manga
+                        // (happens when the app is opened from a Live Activity or widget while
+                        // the reader is active — the reader is a fullScreenCover on top of the
+                        // existing MangaViewController, so a blind push creates a duplicate).
+                        if let existing = navigationController.viewControllers
+                            .compactMap({ $0 as? MangaViewController })
+                            .first(where: { $0.manga.key == mangaKey && $0.manga.sourceKey == source.id }) {
+                            if navigationController.topViewController !== existing {
+                                navigationController.popToViewController(existing, animated: true)
+                            }
+                        } else {
+                            navigationController.pushViewController(
+                                MangaViewController(
+                                    source: source,
+                                    manga: manga,
+                                    parent: navigationController.topViewController,
+                                    chapterKey: chapterKey, // /sourceId/mangaId/chapterId
+                                    openAction: action // ?action={read,readNext,readLatest}
+                                ),
+                                animated: true
+                            )
+                        }
                     } else { // /sourceId
                         let vc: UIViewController = if let legacySource = source.legacySource {
                             SourceViewController(source: legacySource)

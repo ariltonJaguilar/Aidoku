@@ -9,6 +9,7 @@ import UIKit
 import SafariServices
 import SwiftUI
 import WidgetKit
+import Nuke
 import AidokuRunner
 
 class ReaderViewController: BaseObservingViewController {
@@ -536,10 +537,24 @@ class ReaderViewController: BaseObservingViewController {
 
         let coverFileURL = containerURL.appendingPathComponent("widget_cover.jpg")
         do {
-            let (data, _) = try await URLSession.shared.data(from: coverUrl)
-            try data.write(to: coverFileURL)
+            // Build request with source-specific headers (auth, Referer, etc.)
+            let imageRequest: ImageRequest
+            if !coverUrl.isFileURL, let src = source {
+                let urlRequest = await src.getModifiedImageRequest(url: coverUrl, context: nil)
+                imageRequest = ImageRequest(urlRequest: urlRequest)
+            } else {
+                imageRequest = ImageRequest(url: coverUrl)
+            }
+            // Use Nuke: hits disk cache first (cover is already loaded in the app UI),
+            // then falls back to network. Nuke also applies the pipeline delegate which
+            // handles source-specific decoding. Plain URLSession would bypass all of this.
+            let task = ImagePipeline.shared.loadImage(with: imageRequest, completion: { _ in })
+            let response = try await task.response
+            if let jpegData = response.image.jpegData(compressionQuality: 0.9) {
+                try jpegData.write(to: coverFileURL, options: .atomic)
+            }
         } catch {
-            // Cover download failed — widget will use cached or placeholder
+            // Cover load failed — widget will use cached file from previous session
         }
         WidgetCenter.shared.reloadAllTimelines()
     }
