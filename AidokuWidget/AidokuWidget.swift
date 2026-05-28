@@ -46,9 +46,15 @@ struct LastReadProvider: TimelineProvider {
         let coverUrlString = defaults?.string(forKey: "Widget.coverUrl") ?? ""
 
         // Build deep link: aidoku://{sourceId}/{encodedMangaId}
+        // Use a character set that encodes '/' so that manga keys containing
+        // slashes (e.g. "/series/abc/title" for sources like weebcentral) are
+        // treated as a single opaque path component, avoiding double-slash
+        // ambiguity and incorrect path splitting in handleUrl.
         let deepLinkURL: URL?
-        if !sourceId.isEmpty, !mangaId.isEmpty,
-           let encodedMangaId = mangaId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) {
+        if !sourceId.isEmpty, !mangaId.isEmpty {
+            var pathComponentChars = CharacterSet.urlPathAllowed
+            pathComponentChars.remove(charactersIn: "/")
+            let encodedMangaId = mangaId.addingPercentEncoding(withAllowedCharacters: pathComponentChars) ?? mangaId
             deepLinkURL = URL(string: "aidoku://\(sourceId)/\(encodedMangaId)")
         } else {
             deepLinkURL = URL(string: "aidoku://")
@@ -114,13 +120,19 @@ struct AidokuWidget: Widget {
         }
         .configurationDisplayName("Último Manga Lido")
         .description("Mostra a capa do último manga que você leu. Toque para abrir os detalhes no Aidoku.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge])
     }
 }
 
 // MARK: - Preview
 
 #Preview(as: .systemSmall) {
+    AidokuWidget()
+} timeline: {
+    LastReadEntry(date: .now, title: "One Piece", coverImage: nil, deepLinkURL: nil)
+}
+
+#Preview(as: .systemExtraLarge) {
     AidokuWidget()
 } timeline: {
     LastReadEntry(date: .now, title: "One Piece", coverImage: nil, deepLinkURL: nil)
