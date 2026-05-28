@@ -485,9 +485,25 @@ extension AppDelegate {
                         }
                     }
                 }
-            } else if let host = url.host, let source = SourceManager.shared.source(for: host) {
+            } else if let host = url.host, host != "addSourceList" {
                 // todo: we should support opening items in library even if the source isn't installed
                 Task { @MainActor in
+                    // Wait for sources to be loaded before attempting the lookup
+                    // (handles cold-start where sources aren't ready yet)
+                    await SourceManager.shared.waitForSourcesLoad()
+
+                    guard let source = SourceManager.shared.source(for: host) else {
+                        // Not a source ID — fall back to tracker auth or deep link
+                        if let tracker = TrackerManager.trackers.first(where: {
+                            ($0 as? OAuthTracker)?.callbackHost == host
+                        }) as? OAuthTracker {
+                            await tracker.handleAuthenticationCallback(url: url)
+                        } else {
+                            await handleDeepLink(url: url)
+                        }
+                        return
+                    }
+
                     // support percent encoding characters like "/" for manga and chapter keys
                     let pathComponents = url.percentEncodedPath
                         .split(separator: "/")
@@ -526,20 +542,6 @@ extension AppDelegate {
                             NewSourceViewController(source: source)
                         }
                         navigationController?.pushViewController(vc, animated: true)
-                    }
-                }
-            } else {
-                // check for tracker auth callback
-                // this shouldn't really be called since authentication should be performed within the app
-                if let tracker = TrackerManager.trackers.first(where: {
-                    ($0 as? OAuthTracker)?.callbackHost == url.host
-                }) as? OAuthTracker {
-                    Task {
-                        await tracker.handleAuthenticationCallback(url: url)
-                    }
-                } else {
-                    Task {
-                        await handleDeepLink(url: url)
                     }
                 }
             }

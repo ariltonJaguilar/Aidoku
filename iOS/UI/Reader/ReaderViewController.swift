@@ -8,6 +8,7 @@
 import UIKit
 import SafariServices
 import SwiftUI
+import WidgetKit
 import AidokuRunner
 
 class ReaderViewController: BaseObservingViewController {
@@ -467,6 +468,44 @@ class ReaderViewController: BaseObservingViewController {
             currentPage = -1
         }
         reader?.setChapter(chapter, startPage: currentPage)
+
+        // Update widget with last read manga info
+        Task {
+            await updateWidgetData()
+        }
+    }
+
+    private func updateWidgetData() async {
+        guard !UserDefaults.standard.bool(forKey: "General.incognitoMode") else { return }
+        let title = manga.title
+        let coverUrlString = manga.cover ?? ""
+        let sourceId = manga.sourceKey
+        let mangaId = manga.key
+        let appGroupID = "group.app.aidoku.Aidoku"
+
+        let defaults = UserDefaults(suiteName: appGroupID)
+        defaults?.set(title, forKey: "Widget.mangaTitle")
+        defaults?.set(coverUrlString, forKey: "Widget.coverUrl")
+        defaults?.set(sourceId, forKey: "Widget.sourceId")
+        defaults?.set(mangaId, forKey: "Widget.mangaId")
+
+        guard
+            !coverUrlString.isEmpty,
+            let coverUrl = URL(string: coverUrlString),
+            let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID)
+        else {
+            WidgetCenter.shared.reloadAllTimelines()
+            return
+        }
+
+        let coverFileURL = containerURL.appendingPathComponent("widget_cover.jpg")
+        do {
+            let (data, _) = try await URLSession.shared.data(from: coverUrl)
+            try data.write(to: coverFileURL)
+        } catch {
+            // Cover download failed — widget will use cached or placeholder
+        }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func loadNavbarTitle() {

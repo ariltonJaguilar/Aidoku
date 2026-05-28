@@ -35,6 +35,9 @@
 		7C63F0D92F48FD4B007D1811 /* ChapterTransitionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C63F0D42F48FD4B007D1811 /* ChapterTransitionViewController.swift */; };
 		7CF79D3D2F31E81300BF0800 /* ReaderPagedTextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF79D392F31E81300BF0800 /* ReaderPagedTextViewController.swift */; };
 		7CF79D3E2F31E81300BF0800 /* TextPaginator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF79D3A2F31E81300BF0800 /* TextPaginator.swift */; };
+		EAADDC572FC7D84B006BBB6D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAADDC562FC7D84B006BBB6D /* WidgetKit.framework */; };
+		EAADDC592FC7D84B006BBB6D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAADDC582FC7D84B006BBB6D /* SwiftUI.framework */; };
+		EAADDC662FC7D84D006BBB6D /* AidokuWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = EAADDC552FC7D84B006BBB6D /* AidokuWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FB0051222FAF054D004B4A6F /* MigrateSelectSeriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0051212FAF053F004B4A6F /* MigrateSelectSeriesView.swift */; };
 		FB0051262FAF0574004B4A6F /* MigrateResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0051252FAF056E004B4A6F /* MigrateResultsView.swift */; };
 		FB0051282FB7F926004B4A6F /* MigrateSingleSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0051272FB7F91E004B4A6F /* MigrateSingleSearchView.swift */; };
@@ -591,6 +594,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		EAADDC642FC7D84D006BBB6D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FB1B4826277CE18D0056D02C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EAADDC542FC7D84B006BBB6D;
+			remoteInfo = AidokuWidgetExtension;
+		};
 		FBB44E762EC635620032EFBB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FB1B4826277CE18D0056D02C /* Project object */;
@@ -599,6 +609,20 @@
 			remoteInfo = "Aidoku (iOS)";
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EAADDC672FC7D84D006BBB6D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EAADDC662FC7D84D006BBB6D /* AidokuWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		002C0AC02EC0F44D0071CE82 /* LAPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LAPolicy.swift; sourceTree = "<group>"; };
@@ -628,6 +652,9 @@
 		91D7BEF92DD7E48400898539 /* Aidoku-MACOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Aidoku-MACOS.xcconfig"; sourceTree = "<group>"; };
 		91D7BEFB2DD7E4BB00898539 /* Aidoku.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Aidoku.xcconfig; sourceTree = "<group>"; };
 		91D7BEFF2DD8881300898539 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EAADDC552FC7D84B006BBB6D /* AidokuWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AidokuWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EAADDC562FC7D84B006BBB6D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		EAADDC582FC7D84B006BBB6D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		FB0051212FAF053F004B4A6F /* MigrateSelectSeriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrateSelectSeriesView.swift; sourceTree = "<group>"; };
 		FB0051252FAF056E004B4A6F /* MigrateResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrateResultsView.swift; sourceTree = "<group>"; };
 		FB0051272FB7F91E004B4A6F /* MigrateSingleSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrateSingleSearchView.swift; sourceTree = "<group>"; };
@@ -1072,11 +1099,31 @@
 		FBFF58942E807280009367B7 /* DoneButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoneButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EAADDC6A2FC7D84D006BBB6D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EAADDC542FC7D84B006BBB6D /* AidokuWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		EAADDC5A2FC7D84B006BBB6D /* AidokuWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (EAADDC6A2FC7D84D006BBB6D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = AidokuWidget; sourceTree = "<group>"; };
 		FBB44E732EC635620032EFBB /* AidokuTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AidokuTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		EAADDC522FC7D84B006BBB6D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EAADDC592FC7D84B006BBB6D /* SwiftUI.framework in Frameworks */,
+				EAADDC572FC7D84B006BBB6D /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FB1B4832277CE1920056D02C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1355,6 +1402,7 @@
 				FB1B4858277CE55B0056D02C /* iOS */,
 				FB1B483C277CE1920056D02C /* macOS */,
 				FBB44E732EC635620032EFBB /* AidokuTests */,
+				EAADDC5A2FC7D84B006BBB6D /* AidokuWidget */,
 				FB1B4836277CE1920056D02C /* Products */,
 				FB1B4875277CE7FE0056D02C /* Frameworks */,
 				FB82E9632BF07649006A9314 /* Recovered References */,
@@ -1392,6 +1440,7 @@
 				FB1B4835277CE1920056D02C /* Aidoku.app */,
 				FB1B483B277CE1920056D02C /* Aidoku.app */,
 				FBB44E722EC635620032EFBB /* AidokuTests.xctest */,
+				EAADDC552FC7D84B006BBB6D /* AidokuWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1442,6 +1491,8 @@
 			isa = PBXGroup;
 			children = (
 				FB4EEBDF27A4F5C1005081A3 /* CloudKit.framework */,
+				EAADDC562FC7D84B006BBB6D /* WidgetKit.framework */,
+				EAADDC582FC7D84B006BBB6D /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -2336,6 +2387,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		EAADDC542FC7D84B006BBB6D /* AidokuWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAADDC6B2FC7D84D006BBB6D /* Build configuration list for PBXNativeTarget "AidokuWidgetExtension" */;
+			buildPhases = (
+				EAADDC512FC7D84B006BBB6D /* Sources */,
+				EAADDC522FC7D84B006BBB6D /* Frameworks */,
+				EAADDC532FC7D84B006BBB6D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EAADDC5A2FC7D84B006BBB6D /* AidokuWidget */,
+			);
+			name = AidokuWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = AidokuWidgetExtension;
+			productReference = EAADDC552FC7D84B006BBB6D /* AidokuWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		FB1B4834277CE1920056D02C /* Aidoku (iOS) */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FB1B484A277CE1920056D02C /* Build configuration list for PBXNativeTarget "Aidoku (iOS)" */;
@@ -2344,10 +2417,12 @@
 				FB1B4832277CE1920056D02C /* Frameworks */,
 				FB1B4833277CE1920056D02C /* Resources */,
 				FBED233627C3C4D70095D0C0 /* ShellScript */,
+				EAADDC672FC7D84D006BBB6D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				EAADDC652FC7D84D006BBB6D /* PBXTargetDependency */,
 			);
 			name = "Aidoku (iOS)";
 			packageProductDependencies = (
@@ -2417,9 +2492,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					EAADDC542FC7D84B006BBB6D = {
+						CreatedOnToolsVersion = 26.5;
+					};
 					FB1B4834277CE1920056D02C = {
 						CreatedOnToolsVersion = 13.2.1;
 						LastSwiftMigration = 1340;
@@ -2500,11 +2578,19 @@
 				FB1B4834277CE1920056D02C /* Aidoku (iOS) */,
 				FB1B483A277CE1920056D02C /* Aidoku (macOS) */,
 				FBB44E712EC635620032EFBB /* AidokuTests */,
+				EAADDC542FC7D84B006BBB6D /* AidokuWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		EAADDC532FC7D84B006BBB6D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FB1B4833277CE1920056D02C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2556,6 +2642,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		EAADDC512FC7D84B006BBB6D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FB1B4831277CE1920056D02C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3142,6 +3235,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		EAADDC652FC7D84D006BBB6D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EAADDC542FC7D84B006BBB6D /* AidokuWidgetExtension */;
+			targetProxy = EAADDC642FC7D84D006BBB6D /* PBXContainerItemProxy */;
+		};
 		FBB44E772EC635620032EFBB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FB1B4834277CE1920056D02C /* Aidoku (iOS) */;
@@ -3210,6 +3308,84 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		EAADDC682FC7D84D006BBB6D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = AidokuWidget/AidokuWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6GY2KMR4QD;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AidokuWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AidokuWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidoku.Aidoku.AidokuWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EAADDC692FC7D84D006BBB6D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = AidokuWidget/AidokuWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6GY2KMR4QD;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AidokuWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AidokuWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidoku.Aidoku.AidokuWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		FB1B4848277CE1920056D02C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3361,7 +3537,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportsDocumentBrowser = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -3405,7 +3581,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UISupportsDocumentBrowser = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -3552,6 +3728,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		EAADDC6B2FC7D84D006BBB6D /* Build configuration list for PBXNativeTarget "AidokuWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAADDC682FC7D84D006BBB6D /* Debug */,
+				EAADDC692FC7D84D006BBB6D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		FB1B4829277CE18D0056D02C /* Build configuration list for PBXProject "Aidoku" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
