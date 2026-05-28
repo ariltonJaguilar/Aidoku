@@ -331,6 +331,11 @@ class ReaderViewController: BaseObservingViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
+        // End Live Activity when leaving the reader
+        if #available(iOS 16.2, *) {
+            LiveActivityManager.shared.end()
+        }
+
         if !chaptersToRemoveDownload.isEmpty {
             Task {
                 await DownloadManager.shared.delete(chapters: chaptersToRemoveDownload.map {
@@ -469,9 +474,34 @@ class ReaderViewController: BaseObservingViewController {
         }
         reader?.setChapter(chapter, startPage: currentPage)
 
-        // Update widget with last read manga info
+        // Update widget data first (saves cover to App Group), then start Live Activity
+        // so the widget extension can load the cover from the file without network.
         Task {
             await updateWidgetData()
+            if #available(iOS 16.2, *), !UserDefaults.standard.bool(forKey: "General.incognitoMode") {
+                var linkChars = CharacterSet.urlPathAllowed
+                linkChars.remove(charactersIn: "/")
+                let encodedId = manga.key.addingPercentEncoding(withAllowedCharacters: linkChars) ?? manga.key
+                let deepLink = "aidoku://\(manga.sourceKey)/\(encodedId)"
+                LiveActivityManager.shared.startReading(
+                    mangaTitle: manga.title ?? "",
+                    coverURL: manga.cover ?? "",
+                    deepLinkURL: deepLink,
+                    chapterTitle: formattedChapterTitle,
+                    currentPage: max(1, currentPage),
+                    totalPages: 0
+                )
+            }
+        }
+    }
+
+    private var formattedChapterTitle: String {
+        if let num = chapter.chapterNumber {
+            return String(format: NSLocalizedString("CHAPTER_X", comment: ""), num)
+        } else if let vol = chapter.volumeNumber {
+            return String(format: NSLocalizedString("VOLUME_X", comment: ""), vol)
+        } else {
+            return chapter.title ?? ""
         }
     }
 
@@ -824,6 +854,15 @@ extension ReaderViewController: ReaderHoldingDelegate {
         self.chapter = chapter
         self.chaptersToMark = [chapter]
         loadNavbarTitle()
+
+        // Update Live Activity with new chapter info (page count unknown until loaded)
+        if #available(iOS 16.2, *), !UserDefaults.standard.bool(forKey: "General.incognitoMode") {
+            LiveActivityManager.shared.update(
+                currentPage: 1,
+                totalPages: 0,
+                chapterTitle: formattedChapterTitle
+            )
+        }
     }
 
     func setCurrentPage(_ page: Int, position: Double? = nil) {
@@ -850,6 +889,15 @@ extension ReaderViewController: ReaderHoldingDelegate {
         currentPosition = position
         toolbarView.currentPage = page
         toolbarView.updateSliderPosition()
+
+        // Update Live Activity progress
+        if #available(iOS 16.2, *), !UserDefaults.standard.bool(forKey: "General.incognitoMode") {
+            LiveActivityManager.shared.update(
+                currentPage: page,
+                totalPages: totalPages,
+                chapterTitle: formattedChapterTitle
+            )
+        }
         // Mark as completed when reaching the last page
         // Exception: Don't mark for the pre-pagination placeholder (single text page before
         // ReaderPagedTextViewController has paginated it). Once paginated, even single-page

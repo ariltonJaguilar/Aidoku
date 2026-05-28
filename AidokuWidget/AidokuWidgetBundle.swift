@@ -14,5 +14,6 @@ struct AidokuWidgetBundle: WidgetBundle {
         AidokuWidget()
         AidokuLockScreenWidget()
         AidokuAppLaunchWidget()
+        ReadingLiveActivity()
     }
 }
