@@ -481,6 +481,12 @@ class ReaderViewController: BaseObservingViewController {
         let coverUrlString = manga.cover ?? ""
         let sourceId = manga.sourceKey
         let mangaId = manga.key
+
+        // Only update the widget for manga that are in the library
+        let isInLibrary = await MainActor.run {
+            CoreDataManager.shared.hasLibraryManga(sourceId: sourceId, mangaId: mangaId)
+        }
+        guard isInLibrary else { return }
         let appGroupID = "group.app.aidoku.Aidoku"
 
         let defaults = UserDefaults(suiteName: appGroupID)
