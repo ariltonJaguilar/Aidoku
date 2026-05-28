@@ -11,6 +11,23 @@
 *.xcodeproj/*.xcworkspace/xcshareddata/*
 !*.xcodeproj/*.xcworkspace/xcshareddata/swiftpm/
 
+# Xcode build artifacts
+build/
+DerivedData/
+*.xcarchive/
+*.xcarchive
+*.dSYM/
+*.dSYM
+
+# IPA / sideload packaging
+*.ipa
+Payload/
+ExportOptions.plist
+
+# Swift Package Manager (resolved on demand)
+.build/
+.swiftpm/
+
 # Other
 .DS_Store
 
