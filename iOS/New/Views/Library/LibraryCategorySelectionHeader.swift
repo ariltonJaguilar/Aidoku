@@ -32,52 +32,56 @@ private struct CategoryTabsContent: View {
     @ObservedObject var model: CategoryTabsModel
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            ScrollViewReader { proxy in
-                HStack(spacing: 6) {
-                    ForEach(model.sections.indices, id: \.self) { sIdx in
-                        let section = model.sections[sIdx]
-                        ForEach(section.options.indices, id: \.self) { rIdx in
-                            let ip = IndexPath(row: rIdx, section: sIdx)
-                            let active = model.selectedIndexPath == ip
-                            let locked = model.lockedOptions.contains(ip)
+        GeometryReader { geo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                ScrollViewReader { proxy in
+                    HStack(spacing: 6) {
+                        ForEach(model.sections.indices, id: \.self) { sIdx in
+                            let section = model.sections[sIdx]
+                            ForEach(section.options.indices, id: \.self) { rIdx in
+                                let ip = IndexPath(row: rIdx, section: sIdx)
+                                let active = model.selectedIndexPath == ip
+                                let locked = model.lockedOptions.contains(ip)
 
-                            Button {
-                                guard model.selectedIndexPath != ip else { return }
-                                model.selectedIndexPath = ip
-                                model.onSelect?(ip)
-                            } label: {
-                                let label = HStack(spacing: 3) {
-                                    Text(section.options[rIdx])
-                                    if locked {
-                                        Image(systemName: "lock.fill")
-                                            .font(.caption2)
+                                Button {
+                                    guard model.selectedIndexPath != ip else { return }
+                                    model.selectedIndexPath = ip
+                                    model.onSelect?(ip)
+                                } label: {
+                                    let label = HStack(spacing: 3) {
+                                        Text(section.options[rIdx])
+                                        if locked {
+                                            Image(systemName: "lock.fill")
+                                                .font(.caption2)
+                                        }
+                                    }
+                                    .padding(.horizontal, 13)
+                                    .padding(.vertical, 8)
+                                    .font(.footnote.weight(.medium))
+                                    .foregroundStyle(active ? Color.white : Color.primary)
+
+                                    if #available(iOS 26.0, *) {
+                                        label
+                                            .glassEffect(active ? .regular.tint(.accentColor) : .regular)
+                                    } else {
+                                        label
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 100)
+                                                    .fill(Color(uiColor: active ? .tintColor : .secondarySystemFill))
+                                            )
                                     }
                                 }
-                                .padding(.horizontal, 13)
-                                .padding(.vertical, 8)
-                                .font(.footnote.weight(.medium))
-                                .foregroundStyle(active ? Color.white : Color.primary)
-
-                                if #available(iOS 26.0, *) {
-                                    label
-                                        .glassEffect(active ? .regular.tint(.accentColor) : .regular)
-                                } else {
-                                    label
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 100)
-                                                .fill(Color(uiColor: active ? .tintColor : .secondarySystemFill))
-                                        )
-                                }
+                                .id(ip)
                             }
-                            .id(ip)
                         }
                     }
-                }
-                .padding(.horizontal)
-                .onChange(of: model.scrollTo) { ip in
-                    guard let ip else { return }
-                    withAnimation { proxy.scrollTo(ip, anchor: .center) }
+                    // ensure the HStack is at least as wide as the available space
+                    .frame(minWidth: geo.size.width, alignment: .center)
+                    .padding(.horizontal)
+                    .onChange(of: model.scrollTo) { ip in
+                        guard let ip else { return }
+                        withAnimation { proxy.scrollTo(ip, anchor: .center) }
+                    }
                 }
             }
         }
