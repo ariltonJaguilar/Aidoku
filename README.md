@@ -20,6 +20,40 @@ To join the TestFlight, you will need to join the [Aidoku Discord](https://disco
 
 We have an AltStore repo that contains the latest releases ipa. You can copy the [direct source URL](https://raw.githubusercontent.com/Aidoku/Aidoku/altstore/apps.json) and paste it into AltStore. Note that AltStore PAL is not supported.
 
+
+### How to generate an IPA
+#### go to the iOS folder
+cd iOS
+
+####  1) build device (puts the build inside iOS/build)
+BUILD_DIR=$(pwd)/build xcodebuild -project ../Aidoku.xcodeproj \
+  -scheme "Aidoku (iOS)" \
+  -configuration Release \
+  -sdk iphoneos \
+  CODE_SIGNING_REQUIRED=NO \
+  CODE_SIGN_IDENTITY="" \
+  build
+
+####  2) confirm that the .app exists and is for iphoneos (arm64)
+ls -l build/Release-iphoneos/*.app
+file build/Release-iphoneos/*.app/*   # shows binary file types
+lipo -info build/Release-iphoneos/*.app/* 2>/dev/null || true
+
+####  3) package the .app directly from the correct location
+rm -rf Payload
+mkdir -p Payload
+cp -R build/Release-iphoneos/Aidoku.app Payload/
+
+####  4) verify contents before zipping
+ls -l Payload
+ls -l Payload/Aidoku.app
+
+####  5) zip and rename
+zip -r ../Aidoku_unsigned.ipa Payload
+####  return to root folder (optional)
+cd ..
+
+
 ### Manual Installation
 
 The latest ipa file will always be available from the [releases page](https://github.com/Aidoku/Aidoku/releases).

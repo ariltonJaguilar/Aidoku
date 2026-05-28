@@ -3,17 +3,88 @@
 //  Aidoku
 //
 //  Created by Skitty on 2/25/26.
-//  Tabs rewrite: scrollable pill-style tabs replacing the dropdown menu.
+//  SwiftUI glass-effect rewrite — matches ListingsHeaderView pattern exactly.
 //  Public interface is unchanged for upstream merge compatibility.
 //
 
 import UIKit
+import SwiftUI
 
-// based on MangaListSelectionHeaderDelegate
+// MARK: - Protocol (unchanged)
 
 protocol LibraryCategorySelectionHeaderDelegate: AnyObject {
     func optionSelected(_ indexPath: IndexPath)
 }
+
+// MARK: - SwiftUI State
+
+private final class CategoryTabsModel: ObservableObject {
+    @Published var sections: [LibraryCategorySelectionHeader.Section] = []
+    @Published var selectedIndexPath: IndexPath = IndexPath(row: 0, section: 0)
+    @Published var lockedOptions: [IndexPath] = []
+    @Published var scrollTo: IndexPath?
+    var onSelect: ((IndexPath) -> Void)?
+}
+
+// MARK: - SwiftUI View (follows ListingsHeaderView.headerScrollView pattern exactly)
+
+private struct CategoryTabsContent: View {
+    @ObservedObject var model: CategoryTabsModel
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            ScrollViewReader { proxy in
+                HStack(spacing: 6) {
+                    ForEach(model.sections.indices, id: \.self) { sIdx in
+                        let section = model.sections[sIdx]
+                        ForEach(section.options.indices, id: \.self) { rIdx in
+                            let ip = IndexPath(row: rIdx, section: sIdx)
+                            let active = model.selectedIndexPath == ip
+                            let locked = model.lockedOptions.contains(ip)
+
+                            Button {
+                                guard model.selectedIndexPath != ip else { return }
+                                model.selectedIndexPath = ip
+                                model.onSelect?(ip)
+                            } label: {
+                                let label = HStack(spacing: 3) {
+                                    Text(section.options[rIdx])
+                                    if locked {
+                                        Image(systemName: "lock.fill")
+                                            .font(.caption2)
+                                    }
+                                }
+                                .padding(.horizontal, 13)
+                                .padding(.vertical, 8)
+                                .font(.footnote.weight(.medium))
+                                .foregroundStyle(active ? Color.white : Color.primary)
+
+                                if #available(iOS 26.0, *) {
+                                    label
+                                        .glassEffect(active ? .regular.tint(.accentColor) : .regular)
+                                } else {
+                                    label
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 100)
+                                                .fill(Color(uiColor: active ? .tintColor : .secondarySystemFill))
+                                        )
+                                }
+                            }
+                            .id(ip)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .onChange(of: model.scrollTo) { ip in
+                    guard let ip else { return }
+                    withAnimation { proxy.scrollTo(ip, anchor: .center) }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - UICollectionReusableView (public interface unchanged)
 
 class LibraryCategorySelectionHeader: UICollectionReusableView {
     weak var delegate: LibraryCategorySelectionHeaderDelegate?
@@ -24,31 +95,15 @@ class LibraryCategorySelectionHeader: UICollectionReusableView {
     }
 
     var options: [Section] = [] {
-        didSet { buildTabs() }
+        didSet { model.sections = options }
     }
     var lockedOptions: [IndexPath] = [] {
-        didSet { refreshTabAppearance() }
+        didSet { model.lockedOptions = lockedOptions }
     }
 
-    private let scrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.showsHorizontalScrollIndicator = false
-        sv.showsVerticalScrollIndicator = false
-        sv.alwaysBounceHorizontal = false
-        sv.clipsToBounds = false
-        return sv
-    }()
-
-    private let stackView: UIStackView = {
-        let sv = UIStackView()
-        sv.axis = .horizontal
-        sv.spacing = 8
-        sv.alignment = .center
-        return sv
-    }()
-
-    private var tabEntries: [(button: UIButton, indexPath: IndexPath)] = []
-    private var selectedIndexPath = IndexPath(row: 0, section: 0)
+    private let model = CategoryTabsModel()
+    // Retained strongly to prevent deallocation — same pattern as UIHostingCollectionViewCell
+    private var hostingController: UIHostingController<CategoryTabsContent>?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -59,125 +114,31 @@ class LibraryCategorySelectionHeader: UICollectionReusableView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Setup
-
     private func setup() {
-        addSubview(scrollView)
-        scrollView.addSubview(stackView)
+        model.onSelect = { [weak self] ip in
+            self?.delegate?.optionSelected(ip)
+        }
 
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        let host = UIHostingController(rootView: CategoryTabsContent(model: model))
+        host.view.backgroundColor = .clear
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(host.view)
 
         NSLayoutConstraint.activate([
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            // allow centering when content is smaller than the view, but keep
-            // flexible leading/trailing so the stack can grow and enable scrolling
-            stackView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -16),
-            // center horizontally within the frame when possible
-            stackView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
-            stackView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 4),
-            stackView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -4),
-            stackView.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor, constant: -8)
+            host.view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            host.view.topAnchor.constraint(equalTo: topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
-    }
 
-    // MARK: - Tab Building
-
-    private func buildTabs() {
-        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        tabEntries = []
-
-        for (sectionIdx, section) in options.enumerated() {
-            for (rowIdx, title) in section.options.enumerated() {
-                let indexPath = IndexPath(row: rowIdx, section: sectionIdx)
-                let button = makeTabButton(title: title, indexPath: indexPath)
-                stackView.addArrangedSubview(button)
-                tabEntries.append((button: button, indexPath: indexPath))
-            }
-        }
-
-        refreshTabAppearance()
-    }
-
-    private func makeTabButton(title: String, indexPath: IndexPath) -> UIButton {
-        let button = UIButton(configuration: tabConfiguration(selected: false, locked: false, title: title))
-        let ip = indexPath
-        button.addAction(UIAction { [weak self] _ in
-            guard let self, self.selectedIndexPath != ip else { return }
-            self.selectedIndexPath = ip
-            self.refreshTabAppearance()
-            self.scrollToTab(at: ip, animated: true)
-            self.delegate?.optionSelected(ip)
-        }, for: .touchUpInside)
-        return button
-    }
-
-    private func tabConfiguration(selected: Bool, locked: Bool, title: String) -> UIButton.Configuration {
-        var config = UIButton.Configuration.filled()
-        config.title = title
-        config.cornerStyle = .capsule
-        config.contentInsets = NSDirectionalEdgeInsets(top: 7, leading: 14, bottom: 7, trailing: 14)
-
-        if selected {
-            config.baseBackgroundColor = tintColor
-            config.baseForegroundColor = .white
-            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-                var a = attrs
-                a.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-                return a
-            }
-        } else {
-            config.baseBackgroundColor = UIColor.secondarySystemFill
-            config.baseForegroundColor = .label
-            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-                var a = attrs
-                a.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-                return a
-            }
-        }
-
-        if locked {
-            config.image = UIImage(
-                systemName: "lock.fill",
-                withConfiguration: UIImage.SymbolConfiguration(scale: .small)
-            )
-            config.imagePadding = 4
-            config.imagePlacement = .trailing
-        }
-
-        return config
-    }
-
-    // MARK: - Appearance
-
-    private func refreshTabAppearance() {
-        for (button, indexPath) in tabEntries {
-            let isSelected = indexPath == selectedIndexPath
-            let isLocked = lockedOptions.contains(indexPath)
-            let title = button.configuration?.title ?? button.title(for: .normal) ?? ""
-            button.configuration = tabConfiguration(selected: isSelected, locked: isLocked, title: title)
-        }
+        hostingController = host
     }
 
     // MARK: - Public API (unchanged from original)
 
     func setSelectedOption(_ indexPath: IndexPath) {
-        guard selectedIndexPath != indexPath else { return }
-        selectedIndexPath = indexPath
-        refreshTabAppearance()
-        scrollToTab(at: indexPath, animated: false)
-    }
-
-    // MARK: - Scroll helpers
-
-    private func scrollToTab(at indexPath: IndexPath, animated: Bool) {
-        guard let entry = tabEntries.first(where: { $0.indexPath == indexPath }) else { return }
-        let frame = stackView.convert(entry.button.frame, to: scrollView)
-        scrollView.scrollRectToVisible(frame.insetBy(dx: -16, dy: 0), animated: animated)
+        guard model.selectedIndexPath != indexPath else { return }
+        model.selectedIndexPath = indexPath
+        model.scrollTo = indexPath
     }
 }
