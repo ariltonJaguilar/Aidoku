@@ -124,7 +124,7 @@ struct AidokuWidget: Widget {
     }
 }
 
-// MARK: - Lock Screen Widget View
+// MARK: - Lock Screen Widget View (Continuar Lendo)
 
 struct LockScreenWidgetView: View {
     var entry: LastReadProvider.Entry
@@ -133,6 +133,7 @@ struct LockScreenWidgetView: View {
         HStack(spacing: 10) {
             Image(systemName: "book.fill")
                 .font(.system(size: 22, weight: .semibold))
+                .widgetAccentable()
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.title.isEmpty ? "Aidoku" : entry.title)
@@ -144,12 +145,15 @@ struct LockScreenWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .widgetURL(entry.deepLinkURL)
         .containerBackground(for: .widget) { Color.clear }
     }
 }
 
-// MARK: - Lock Screen Widget Configuration
+// MARK: - Lock Screen Widget Configuration (Continuar Lendo)
 
 struct AidokuLockScreenWidget: Widget {
     let kind: String = "AidokuLockScreenWidget"
@@ -160,6 +164,63 @@ struct AidokuLockScreenWidget: Widget {
         }
         .configurationDisplayName("Continuar Lendo")
         .description("Abre o último manga lido direto da tela de bloqueio.")
+        .supportedFamilies([.accessoryRectangular])
+    }
+}
+
+// MARK: - App Launch Provider
+
+struct AppLaunchEntry: TimelineEntry {
+    let date: Date = .init()
+}
+
+struct AppLaunchProvider: TimelineProvider {
+    func placeholder(in context: Context) -> AppLaunchEntry { AppLaunchEntry() }
+    func getSnapshot(in context: Context, completion: @escaping (AppLaunchEntry) -> Void) {
+        completion(AppLaunchEntry())
+    }
+    func getTimeline(in context: Context, completion: @escaping (Timeline<AppLaunchEntry>) -> Void) {
+        completion(Timeline(entries: [AppLaunchEntry()], policy: .never))
+    }
+}
+
+// MARK: - App Launch Widget View
+
+struct AppLaunchWidgetView: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "books.vertical.fill")
+                .font(.system(size: 22, weight: .semibold))
+                .widgetAccentable()
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Aidoku")
+                    .font(.headline)
+                Text("Abrir app")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .widgetURL(URL(string: "aidoku://"))
+        .containerBackground(for: .widget) { Color.clear }
+    }
+}
+
+// MARK: - App Launch Widget Configuration
+
+struct AidokuAppLaunchWidget: Widget {
+    let kind: String = "AidokuAppLaunchWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: AppLaunchProvider()) { _ in
+            AppLaunchWidgetView()
+        }
+        .configurationDisplayName("Abrir Aidoku")
+        .description("Abre o Aidoku direto da tela de bloqueio.")
         .supportedFamilies([.accessoryRectangular])
     }
 }
@@ -182,4 +243,10 @@ struct AidokuLockScreenWidget: Widget {
     AidokuLockScreenWidget()
 } timeline: {
     LastReadEntry(date: .now, title: "One Piece", coverImage: nil, deepLinkURL: nil)
+}
+
+#Preview(as: .accessoryRectangular) {
+    AidokuAppLaunchWidget()
+} timeline: {
+    AppLaunchEntry()
 }
