@@ -652,6 +652,8 @@
 		91D7BEF92DD7E48400898539 /* Aidoku-MACOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Aidoku-MACOS.xcconfig"; sourceTree = "<group>"; };
 		91D7BEFB2DD7E4BB00898539 /* Aidoku.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Aidoku.xcconfig; sourceTree = "<group>"; };
 		91D7BEFF2DD8881300898539 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA01AA01AA01AA01AA01AA01 /* Aidoku-IOS-Personal.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Aidoku-IOS-Personal.xcconfig"; sourceTree = "<group>"; };
+		AA02AA02AA02AA02AA02AA02 /* AidokuWidget/AidokuWidget-Personal.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "AidokuWidget/AidokuWidget-Personal.xcconfig"; sourceTree = SOURCE_ROOT; };
 		EAADDC552FC7D84B006BBB6D /* AidokuWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AidokuWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAADDC562FC7D84B006BBB6D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		EAADDC582FC7D84B006BBB6D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -1461,6 +1463,7 @@
 			isa = PBXGroup;
 			children = (
 				91D7BEF72DD7E46800898539 /* Aidoku-IOS.xcconfig */,
+				AA01AA01AA01AA01AA01AA01 /* Aidoku-IOS-Personal.xcconfig */,
 				FB1B4852277CE4510056D02C /* AppDelegate.swift */,
 				FB1B4855277CE5560056D02C /* SceneDelegate.swift */,
 				FB662E892DA58B0900007514 /* New */,
@@ -2091,6 +2094,7 @@
 		FB82E9632BF07649006A9314 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
+				AA02AA02AA02AA02AA02AA02 /* AidokuWidget/AidokuWidget-Personal.xcconfig */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -3310,6 +3314,7 @@
 /* Begin XCBuildConfiguration section */
 		EAADDC682FC7D84D006BBB6D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA02AA02AA02AA02AA02AA02 /* AidokuWidget/AidokuWidget-Personal.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
@@ -3333,7 +3338,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.aidoku.Aidoku.AidokuWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ariltonaguilar.Aidoku.AidokuWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -3349,6 +3354,7 @@
 		};
 		EAADDC692FC7D84D006BBB6D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA02AA02AA02AA02AA02AA02 /* AidokuWidget/AidokuWidget-Personal.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
@@ -3372,7 +3378,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.aidoku.Aidoku.AidokuWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ariltonaguilar.Aidoku.AidokuWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -3511,14 +3517,14 @@
 		};
 		FB1B484B277CE1920056D02C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 91D7BEF72DD7E46800898539 /* Aidoku-IOS.xcconfig */;
+			baseConfigurationReference = AA01AA01AA01AA01AA01AA01 /* Aidoku-IOS-Personal.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				ASSETCATALOG_OTHER_FLAGS = "--enable-icon-stack-fallback-generation=disabled";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = iOS/iOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "iOS/iOS-Personal.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
@@ -3555,14 +3561,14 @@
 		};
 		FB1B484C277CE1920056D02C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 91D7BEF72DD7E46800898539 /* Aidoku-IOS.xcconfig */;
+			baseConfigurationReference = AA01AA01AA01AA01AA01AA01 /* Aidoku-IOS-Personal.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				ASSETCATALOG_OTHER_FLAGS = "--enable-icon-stack-fallback-generation=disabled";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = iOS/iOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "iOS/iOS-Personal.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;

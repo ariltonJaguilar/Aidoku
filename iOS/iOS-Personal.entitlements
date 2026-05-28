@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  iOS-Personal.entitlements
+  Use this file when building with a free/personal Apple developer account.
+  In Xcode: Target "Aidoku (iOS)" → Build Settings → Code Signing Entitlements
+  → change the value to "iOS/iOS-Personal.entitlements".
+
+  To restore full capabilities (iCloud, Push Notifications, Custom Fonts) when
+  you upgrade to a paid developer account, change the setting back to
+  "iOS/iOS.entitlements".
+
+  This file is NOT in the upstream Aidoku repository, so pulling upstream
+  updates will never overwrite it or cause merge conflicts.
+-->
+<plist version="1.0">
+<dict>
+	<!-- Required for widget ↔ app data sharing -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.app.aidoku.Aidoku</string>
+	</array>
+</dict>
+</plist>

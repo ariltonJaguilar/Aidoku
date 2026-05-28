@@ -26,21 +26,24 @@ struct LastReadProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LastReadEntry) -> Void) {
-        completion(loadEntry())
+        Task { completion(await loadEntry()) }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LastReadEntry>) -> Void) {
-        let entry = loadEntry()
-        // No automatic refresh — the app triggers a reload when the user reads
-        let timeline = Timeline(entries: [entry], policy: .never)
-        completion(timeline)
+        Task {
+            let entry = await loadEntry()
+            // No automatic refresh — the app triggers a reload when the user reads
+            let timeline = Timeline(entries: [entry], policy: .never)
+            completion(timeline)
+        }
     }
 
-    private func loadEntry() -> LastReadEntry {
+    private func loadEntry() async -> LastReadEntry {
         let defaults = UserDefaults(suiteName: appGroupIdentifier)
         let title = defaults?.string(forKey: "Widget.mangaTitle") ?? ""
         let sourceId = defaults?.string(forKey: "Widget.sourceId") ?? ""
         let mangaId = defaults?.string(forKey: "Widget.mangaId") ?? ""
+        let coverUrlString = defaults?.string(forKey: "Widget.coverUrl") ?? ""
 
         // Build deep link: aidoku://{sourceId}/{encodedMangaId}
         let deepLinkURL: URL?
@@ -51,12 +54,22 @@ struct LastReadProvider: TimelineProvider {
             deepLinkURL = URL(string: "aidoku://")
         }
 
+        // 1. Try to load the cover from the App Group shared file (fastest path)
         var coverImage: UIImage?
         if let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: appGroupIdentifier
         ) {
             let coverFileURL = containerURL.appendingPathComponent("widget_cover.jpg")
             if let data = try? Data(contentsOf: coverFileURL) {
+                coverImage = UIImage(data: data)
+            }
+        }
+
+        // 2. Fallback: download directly from the URL stored in UserDefaults.
+        //    This handles sideloaded builds where the App Group container is
+        //    inaccessible but shared UserDefaults still works.
+        if coverImage == nil, !coverUrlString.isEmpty, let coverUrl = URL(string: coverUrlString) {
+            if let (data, _) = try? await URLSession.shared.data(from: coverUrl) {
                 coverImage = UIImage(data: data)
             }
         }

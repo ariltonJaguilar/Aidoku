@@ -1,0 +1,26 @@
+//
+//  Aidoku-IOS-Personal.xcconfig
+//
+//  Personal-team / sideload build overrides for the Aidoku iOS target.
+//  Inherits everything from Aidoku-IOS.xcconfig and overrides only
+//  the settings that must differ for a free Apple developer account.
+//
+//  This file is NOT in the upstream Aidoku repository, so pulling
+//  upstream updates will never cause merge conflicts here.
+//
+//  To restore a paid-account build, remove (or comment out) APP_ID_PREFIX
+//  below, or switch the target's configuration file back to Aidoku-IOS.xcconfig.
+//
+
+#include "Aidoku-IOS.xcconfig"
+
+// ── Bundle ID prefix ─────────────────────────────────────────────────────────
+// Change this to any reverse-DNS prefix you own and can register with your
+// personal Apple ID (e.g. com.yourname).
+// Result: PRODUCT_BUNDLE_IDENTIFIER = com.ariltonaguilar.Aidoku
+APP_ID_PREFIX = com.ariltonaguilar
+
+// ── Entitlements ──────────────────────────────────────────────────────────────
+// Strip capabilities not supported by personal teams (iCloud, Push, Fonts).
+// App Groups IS supported and is kept so the widget can share data.
+CODE_SIGN_ENTITLEMENTS = iOS/iOS-Personal.entitlements

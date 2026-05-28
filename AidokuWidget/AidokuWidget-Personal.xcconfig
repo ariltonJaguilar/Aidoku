@@ -1,0 +1,20 @@
+//
+//  AidokuWidget-Personal.xcconfig
+//
+//  Personal-team / sideload build overrides for the AidokuWidget target.
+//  Mirrors the prefix set in Aidoku-IOS-Personal.xcconfig so both targets
+//  use a consistent bundle ID and team.
+//
+//  This file is NOT in the upstream Aidoku repository.
+//
+
+#include "../Shared/Aidoku.xcconfig"
+
+// ── Bundle ID prefix (must match Aidoku-IOS-Personal.xcconfig) ───────────────
+APP_ID_PREFIX = com.ariltonaguilar
+
+// Widget bundle ID resolves to: com.ariltonaguilar.Aidoku.AidokuWidget
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_ID_PREFIX).$(APP_ID_SUFFIX).AidokuWidget
+
+// Entitlements — App Groups only (same for personal and paid accounts)
+CODE_SIGN_ENTITLEMENTS = AidokuWidget/AidokuWidget.entitlements
