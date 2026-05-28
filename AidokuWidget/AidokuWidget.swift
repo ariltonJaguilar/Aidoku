@@ -124,6 +124,46 @@ struct AidokuWidget: Widget {
     }
 }
 
+// MARK: - Lock Screen Widget View
+
+struct LockScreenWidgetView: View {
+    var entry: LastReadProvider.Entry
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "book.fill")
+                .font(.system(size: 22, weight: .semibold))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.title.isEmpty ? "Aidoku" : entry.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text("Continuar lendo")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .widgetURL(entry.deepLinkURL)
+        .containerBackground(for: .widget) { Color.clear }
+    }
+}
+
+// MARK: - Lock Screen Widget Configuration
+
+struct AidokuLockScreenWidget: Widget {
+    let kind: String = "AidokuLockScreenWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: LastReadProvider()) { entry in
+            LockScreenWidgetView(entry: entry)
+        }
+        .configurationDisplayName("Continuar Lendo")
+        .description("Abre o último manga lido direto da tela de bloqueio.")
+        .supportedFamilies([.accessoryRectangular])
+    }
+}
+
 // MARK: - Preview
 
 #Preview(as: .systemSmall) {
@@ -134,6 +174,12 @@ struct AidokuWidget: Widget {
 
 #Preview(as: .systemExtraLarge) {
     AidokuWidget()
+} timeline: {
+    LastReadEntry(date: .now, title: "One Piece", coverImage: nil, deepLinkURL: nil)
+}
+
+#Preview(as: .accessoryRectangular) {
+    AidokuLockScreenWidget()
 } timeline: {
     LastReadEntry(date: .now, title: "One Piece", coverImage: nil, deepLinkURL: nil)
 }

@@ -12,5 +12,6 @@ import SwiftUI
 struct AidokuWidgetBundle: WidgetBundle {
     var body: some Widget {
         AidokuWidget()
+        AidokuLockScreenWidget()
     }
 }
