@@ -102,6 +102,8 @@ struct MangaView: View {
 
                     bottomSeparator
                 }
+
+                sameSimilarSection
             }
             // decrease the min row height for the bottom separator/spacing
             .environment(\.defaultMinListRowHeight, 10)
@@ -321,6 +323,124 @@ extension MangaView {
         }())
         .listRowSeparator(.hidden)
         .listRowInsets(.zero)
+    }
+
+    @ViewBuilder
+    var sameSimilarSection: some View {
+        if viewModel.source != nil {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("Semelhantes na mesma fonte")
+                        .font(.headline)
+                    Spacer()
+                    if viewModel.loadingSimilar {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Button {
+                            Task {
+                                if !viewModel.similarLoaded {
+                                    await viewModel.loadSimilarManga()
+                                } else {
+                                    withAnimation {
+                                        viewModel.similarLoaded = false
+                                        viewModel.similarManga = []
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text(viewModel.similarLoaded ? "Ocultar" : "Mostrar")
+                                .font(.subheadline)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+                ListDivider()
+
+                if viewModel.similarLoaded {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHStack(alignment: .top, spacing: 16) {
+                            if viewModel.similarManga.isEmpty {
+                                // Placeholder when no results found
+                                VStack {
+                                    Spacer()
+                                    Text("Nenhum manga semelhante encontrado.")
+                                        .foregroundStyle(.secondary)
+                                        .font(.subheadline)
+                                        .multilineTextAlignment(.center)
+                                    Spacer()
+                                }
+                                .frame(width: 200, height: 180)
+                            } else {
+                                ForEach(viewModel.similarManga.indices, id: \.self) { index in
+                                    let item = viewModel.similarManga[index]
+                                    Button {
+                                        let vc = MangaViewController(source: viewModel.source, manga: item, parent: path.rootViewController)
+                                        path.push(vc)
+                                    } label: {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            MangaCoverView(
+                                                source: viewModel.source,
+                                                coverImage: item.cover ?? "",
+                                                width: 120,
+                                                height: 180
+                                            )
+                                            Text(item.title)
+                                                .font(.caption)
+                                                .lineLimit(2)
+                                                .multilineTextAlignment(.leading)
+                                                .frame(width: 120)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+
+                            // "Ver mais" always visible when a source is available
+                            if let source = viewModel.source {
+                                let manga = viewModel.manga
+                                Button {
+                                    let vc = MangaListViewController(source: source, title: "Semelhantes")
+                                    vc.getEntries = { page in
+                                        return try await source.getSearchMangaList(query: manga.title, page: page, filters: [])
+                                    }
+                                    path.push(vc)
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(Color(UIColor.secondarySystemFill))
+                                                .frame(width: 120, height: 180)
+                                            VStack(spacing: 6) {
+                                                Image(systemName: "chevron.right.circle.fill")
+                                                    .font(.system(size: 28))
+                                                    .foregroundStyle(.secondary)
+                                                Text("Ver mais")
+                                                    .font(.caption.weight(.medium))
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                        }
+                                        Color.clear.frame(height: 16)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                    }
+                    ListDivider()
+                    Color.clear.frame(height: 28)
+                } else {
+                    Color.clear.frame(height: 16) // spacing before next section when collapsed
+                }
+            }
+            .listRowInsets(.zero)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
     }
 
     @ViewBuilder

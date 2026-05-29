@@ -51,6 +51,10 @@ extension MangaView {
 
         @Published var error: Error?
 
+        @Published var similarManga: [AidokuRunner.Manga] = []
+        @Published var loadingSimilar = false
+        @Published var similarLoaded = false
+
         private var fetchedDetails = false
         private var markedOpened = false
         private var cancellables = Set<AnyCancellable>()
@@ -868,5 +872,92 @@ extension MangaView.ViewModel {
         manga.langFilter = chapterLangFilter
         manga.scanlatorFilter = chapterScanlatorFilter
         await CoreDataManager.shared.updateMangaDetails(manga: manga)
+    }
+}
+
+// MARK: - Similar Manga
+extension MangaView.ViewModel {
+
+    // Tags that indicate NSFW content (case-insensitive match).
+    private static let nsfwIndicators: Set<String> = [
+        "adult", "mature", "smut", "explicit", "erotica", "hentai",
+        "pornographic", "18+", "ecchi", "sexual violence", "nudity",
+        "explicit content", "nsfw"
+    ]
+
+    private func isNSFW(_ tags: [String]?) -> Bool {
+        guard let tags, !tags.isEmpty else { return false }
+        return tags.contains { MangaView.ViewModel.nsfwIndicators.contains($0.lowercased()) }
+    }
+
+    func loadSimilarManga() async {
+        guard let source, !loadingSimilar, !similarLoaded else { return }
+        loadingSimilar = true
+
+        // Komikku-style keyword search:
+        // 1. Full title first (finds sequels / spin-offs directly)
+        // 2. Individual words > 1 char, non-numeric (broader signal)
+        // Results are searched in parallel and merged in keyword order.
+        let fullTitle = manga.title.trimmingCharacters(in: .whitespaces)
+        var keywords: [String] = []
+        var seenKeywords = Set<String>()
+
+        if !fullTitle.isEmpty, seenKeywords.insert(fullTitle.lowercased()).inserted {
+            keywords.append(fullTitle)
+        }
+
+        // Strip punctuation by keeping only letters, digits and whitespace,
+        // then split into individual words. Using CharacterSet avoids
+        // Unicode escape sequences that Swift doesn’t support in \uXXXX form.
+        let allowed = CharacterSet.letters.union(.decimalDigits).union(.whitespaces)
+        let stripped = fullTitle
+            .unicodeScalars
+            .map { allowed.contains($0) ? Character($0) : Character(" ") }
+            .reduce(into: "") { $0.append($1) }
+        stripped
+            .components(separatedBy: .whitespaces)
+            .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+            .filter { $0.count > 1 && !$0.allSatisfy(\.isNumber) }
+            .forEach { word in
+                if seenKeywords.insert(word).inserted { keywords.append(word) }
+            }
+
+        guard !keywords.isEmpty else {
+            loadingSimilar = false
+            similarLoaded = true
+            return
+        }
+
+        // Parallel search for all keywords.
+        var orderedResults = [[AidokuRunner.Manga]](repeating: [], count: keywords.count)
+        await withTaskGroup(of: (Int, [AidokuRunner.Manga]).self) { group in
+            for (index, keyword) in keywords.enumerated() {
+                group.addTask {
+                    let entries = (try? await source.getSearchMangaList(query: keyword, page: 1, filters: []))?.entries ?? []
+                    return (index, entries)
+                }
+            }
+            for await (index, entries) in group {
+                orderedResults[index] = entries
+            }
+        }
+
+        // NSFW rule: if the current manga is NSFW, only keep results that are
+        // also NSFW *or* that have no tags at all (rating unknown — don’t exclude them).
+        let currentIsNSFW = isNSFW(manga.tags)
+
+        var seen = Set<String>([manga.key])
+        similarManga = orderedResults.flatMap { $0 }.filter { item in
+            guard seen.insert(item.key).inserted else { return false }
+            if currentIsNSFW {
+                let hasTags = !(item.tags?.isEmpty ?? true)
+                // Exclude only items that explicitly have tags but none are NSFW.
+                if hasTags { return isNSFW(item.tags) }
+            }
+            return true
+        }
+
+        loadingSimilar = false
+        similarLoaded = true
     }
 }

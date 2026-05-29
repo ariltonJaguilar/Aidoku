@@ -949,11 +949,26 @@ extension LibraryViewController {
 
             snapshot.appendItems(regularItems, toSection: .regular)
 
-            // Update layout if featured state changed
+            // Update layout if featured state changed.
+            // IMPORTANT: hasFeaturedItem must be set BEFORE apply() so that the
+            // cell provider closure uses the correct value and dequeues the right
+            // cell type (FeaturedMangaCell vs MangaGridCell).  Setting it after
+            // apply() means a later reconfigureItems() call will see a different
+            // hasFeaturedItem than the one used when the cell was first dequeued,
+            // causing UIKit to attempt a type-mismatched reconfigure → crash.
             let newHasFeaturedItem = featured != nil
-            dataSource.apply(snapshot)
-            if newHasFeaturedItem != hasFeaturedItem {
+            let featuredStateChanged = newHasFeaturedItem != hasFeaturedItem
+            if featuredStateChanged {
                 hasFeaturedItem = newHasFeaturedItem
+                // reconfigureItems() cannot change cell types; mark the first
+                // regular item for a full reload so UIKit dequeues a fresh cell
+                // with the correct reuse identifier when the featured slot toggles.
+                if !regularItems.isEmpty {
+                    snapshot.reloadItems([regularItems[0]])
+                }
+            }
+            dataSource.apply(snapshot)
+            if featuredStateChanged {
                 collectionView.collectionViewLayout.invalidateLayout()
             }
         } else {
@@ -1065,7 +1080,7 @@ extension LibraryViewController {
 
     func updateHeaderLockIcons() {
         guard let header = (collectionView.supplementaryView(
-            forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(index: 0)
+            forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: 0)
         ) as? LibraryCategorySelectionHeader) else {
             return
         }
@@ -1088,7 +1103,7 @@ extension LibraryViewController {
     // update category options in header
     func updateHeaderCategories() {
         guard let header = (collectionView.supplementaryView(
-            forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(index: 0)
+            forElementKind: UICollectionView.elementKindSectionHeader, at: IndexPath(item: 0, section: 0)
         ) as? LibraryCategorySelectionHeader) else {
             return
         }
