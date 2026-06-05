@@ -131,6 +131,22 @@ final class BangumiTracker: OAuthTracker {
         await api.oauth.getAuthenticationUrl(responseType: "code", redirectUri: "aidoku://bangumi-auth")
     }
 
+    func getUserList() async throws -> [TrackSearchItem] {
+        let collections = await api.getUserCollections()
+        return collections.compactMap { collection in
+            guard let subject = collection.subject else { return nil }
+            return TrackSearchItem(
+                id: String(subject.id),
+                title: getDisplayTitle(for: subject),
+                coverUrl: getCoverUrl(for: subject),
+                description: subject.summary,
+                status: getPublishingStatus(subject: subject),
+                type: getSubjectType(for: subject),
+                tracked: true
+            )
+        }
+    }
+
     func handleAuthenticationCallback(url: URL) async {
         guard let code = url.queryParameters?["code"] else { return }
 

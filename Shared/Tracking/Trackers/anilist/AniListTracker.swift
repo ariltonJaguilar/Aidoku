@@ -196,6 +196,23 @@ final class AniListTracker: OAuthTracker {
         await api.oauth.getAuthenticationUrl(responseType: "token")
     }
 
+    func getUserList() async throws -> [TrackSearchItem] {
+        guard let userId = await api.getUser()?.id else { return [] }
+        let media = await api.getUserMangaList(userId: userId)
+        return media.compactMap { media in
+            guard let id = media.id else { return nil }
+            return TrackSearchItem(
+                id: String(id),
+                title: media.title?.userPreferred,
+                coverUrl: media.coverImage?.medium,
+                description: media.description,
+                status: getPublishingStatus(statusString: media.status ?? ""),
+                type: getMediaType(typeString: media.format ?? ""),
+                tracked: true
+            )
+        }
+    }
+
     func handleAuthenticationCallback(url: URL) async {
         var components = URLComponents()
         components.query = url.fragment

@@ -49,6 +49,19 @@ final class ShikimoriTracker: OAuthTracker {
         await getSearch(query: title, includeNsfw: includeNsfw)
     }
 
+    func getUserList() async throws -> [TrackSearchItem] {
+        let manga = await api.getUserMangaList()
+        return manga.map {
+            TrackSearchItem(
+                id: $0.id,
+                title: $0.russian?.isEmpty == false ? $0.russian : $0.name,
+                coverUrl: $0.poster.mini2xUrl,
+                type: getMediaType(typeString: $0.kind),
+                tracked: true
+            )
+        }
+    }
+
     func getAuthenticationUrl() async -> URL? {
         await api.oauth.getAuthenticationUrl(
             responseType: "code",

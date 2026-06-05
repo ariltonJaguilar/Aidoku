@@ -11,6 +11,11 @@ import Foundation
 
 struct MyAnimeListSearchResponse: Codable {
     var data: [MyAnimeListMangaNode]
+    var paging: MyAnimeListPaging?
+}
+
+struct MyAnimeListPaging: Codable {
+    var next: String?
 }
 
 struct MyAnimeListMangaNode: Codable {

@@ -121,8 +121,32 @@ enum AniListQueries {
     static let viewerQuery = """
     query {
       Viewer {
+        id
         mediaListOptions {
           scoreFormat
+        }
+      }
+    }
+    """
+
+    static let userMangaListQuery = """
+    query ($userId: Int) {
+      MediaListCollection(userId: $userId, type: MANGA) {
+        lists {
+          entries {
+            media {
+              id
+              title {
+                userPreferred
+              }
+              description
+              status
+              format
+              coverImage {
+                medium
+              }
+            }
+          }
         }
       }
     }
@@ -228,9 +252,32 @@ struct AniListDate: Codable, Sendable {
 }
 
 struct User: Codable, Sendable {
+    var id: Int?
     var mediaListOptions: MediaListOptions?
 }
 
 struct MediaListOptions: Codable, Sendable {
     var scoreFormat: String?
+}
+
+// MARK: - User manga list response structs
+
+struct AniListUserListVars: Codable, Sendable {
+    var userId: Int
+}
+
+struct AniListUserListResponse: Codable, Sendable {
+    var MediaListCollection: AniListMediaListCollection?
+}
+
+struct AniListMediaListCollection: Codable, Sendable {
+    var lists: [AniListMediaListGroup]
+}
+
+struct AniListMediaListGroup: Codable, Sendable {
+    var entries: [AniListMediaListEntry]
+}
+
+struct AniListMediaListEntry: Codable, Sendable {
+    var media: Media?
 }

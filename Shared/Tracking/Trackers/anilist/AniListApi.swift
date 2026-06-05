@@ -75,6 +75,14 @@ extension AniListApi {
         return response?.data?.Viewer
     }
 
+    func getUserMangaList(userId: Int) async -> [Media] {
+        let response: GraphQLResponse<AniListUserListResponse>? = await request(
+            GraphQLVariableQuery(query: AniListQueries.userMangaListQuery, variables: AniListUserListVars(userId: userId))
+        )
+        let lists = response?.data?.MediaListCollection?.lists ?? []
+        return lists.flatMap { $0.entries.compactMap { $0.media } }
+    }
+
     private func request<T: Codable & Sendable, D: Encodable>(_ data: D) async -> GraphQLResponse<T>? {
         let url = URL(string: "https://graphql.anilist.co")!
         var request = await oauth.authorizedRequest(for: url)

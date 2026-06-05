@@ -215,6 +215,34 @@ private extension ShikimoriApi {
         return UserDefaults.standard.string(forKey: key)
     }
 
+    public func getUserMangaList() async -> [ShikimoriManga] {
+        var allManga: [ShikimoriManga] = []
+        let statuses = ["watching", "planned", "completed", "on_hold", "dropped", "rewatching"]
+        let limit = 50
+
+        for status in statuses {
+            var page = 1
+            while true {
+                guard var components = URLComponents(string: oauth.baseUrl + "/api/mangas") else { break }
+                components.queryItems = [
+                    URLQueryItem(name: "mylist", value: status),
+                    URLQueryItem(name: "limit", value: "\(limit)"),
+                    URLQueryItem(name: "page", value: "\(page)")
+                ]
+                guard let url = components.url,
+                      let data = try? await requestData(urlRequest: authorizedRequest(for: url)),
+                      let items = try? decoder.decode([ShikimoriManga].self, from: data),
+                      !items.isEmpty
+                else { break }
+                allManga.append(contentsOf: items)
+                if items.count < limit { break }
+                page += 1
+            }
+        }
+
+        return allManga
+    }
+
     private func requestGraphQL<T: Codable, D: Encodable>(_ data: D) async -> GraphQLResponse<T>? {
         guard let url = URL(string: oauth.baseUrl + "/api/graphql") else { return nil }
         var request = URLRequest(url: url)

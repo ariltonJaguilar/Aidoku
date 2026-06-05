@@ -158,6 +158,31 @@ extension BangumiApi {
         }
     }
 
+    func getUserCollections() async -> [BangumiUserCollectionItem] {
+        guard let user = await getUser() else { return [] }
+        var allItems: [BangumiUserCollectionItem] = []
+        var offset = 0
+        let limit = 50
+
+        while true {
+            guard var components = URLComponents(string: "https://api.bgm.tv/v0/users/\(user.username)/collections") else { break }
+            components.queryItems = [
+                URLQueryItem(name: "subject_type", value: "1"),
+                URLQueryItem(name: "limit", value: "\(limit)"),
+                URLQueryItem(name: "offset", value: "\(offset)")
+            ]
+            guard let url = components.url else { break }
+            guard let response: BangumiUserCollectionsResponse = await request(url) else { break }
+            let items = response.data ?? []
+            if items.isEmpty { break }
+            allItems.append(contentsOf: items)
+            if let total = response.total, allItems.count >= total { break }
+            offset += limit
+        }
+
+        return allItems
+    }
+
     private func requestData(urlRequest: URLRequest) async throws -> (Data, URLResponse) {
         var (data, response) = try await URLSession.shared.data(for: urlRequest)
         let statusCode = (response as? HTTPURLResponse)?.statusCode

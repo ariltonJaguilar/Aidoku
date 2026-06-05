@@ -118,6 +118,20 @@ struct BangumiUser: Codable {
     var avatar: BangumiImages?
 }
 
+// MARK: - User Collections (for import)
+
+struct BangumiUserCollectionItem: Codable {
+    var subject_id: Int
+    var subject_type: Int
+    var type: Int
+    var subject: BangumiSubject?
+}
+
+struct BangumiUserCollectionsResponse: Codable {
+    var data: [BangumiUserCollectionItem]?
+    var total: Int?
+}
+
 // MARK: - Collection Update
 struct BangumiCollectionUpdate: Codable {
     var type: BangumiCollectionStatus?

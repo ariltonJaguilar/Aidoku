@@ -21,6 +21,7 @@ struct SettingsTrackingView: View {
     @State private var loadingTrackerId: String?
     @State private var logoutTrackerName: String?
     @State private var showLogoutAlert = false
+    @State private var showTrackerImport = false
 
     private let iconSize: CGFloat = 42
     private let iconCornerRadius: CGFloat = 42 * 0.225
@@ -147,8 +148,23 @@ struct SettingsTrackingView: View {
                         .padding(.bottom, 8) // fix tab bar being too close to text on ios 26
                 }
             }
+
+            if TrackerManager.hasAvailableTrackers {
+                Section {
+                    Button {
+                        showTrackerImport = true
+                    } label: {
+                        Label("Importar da Lista de Rastreadores", systemImage: "square.and.arrow.down")
+                    }
+                } footer: {
+                    Text("Busca mangas que você segue nos rastreadores ativos e adiciona os que ainda não estão na sua biblioteca.")
+                }
+            }
         }
         .navigationTitle(NSLocalizedString("TRACKING"))
+        .sheet(isPresented: $showTrackerImport) {
+            TrackerImportView()
+        }
         .alert(String(format: NSLocalizedString("LOGOUT_FROM_%@"), logoutTrackerName ?? ""), isPresented: $showLogoutAlert) {
             Button(NSLocalizedString("CANCEL"), role: .cancel) {}
             Button(NSLocalizedString("LOGOUT"), role: .destructive) {

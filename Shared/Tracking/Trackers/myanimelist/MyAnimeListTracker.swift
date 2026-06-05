@@ -102,6 +102,18 @@ final class MyAnimeListTracker: OAuthTracker {
         }) ?? []
     }
 
+    func getUserList() async throws -> [TrackSearchItem] {
+        let manga = await api.getUserMangaList()
+        return manga.map {
+            TrackSearchItem(
+                id: String($0.id),
+                title: $0.title,
+                coverUrl: $0.mainPicture?.large ?? $0.mainPicture?.medium,
+                tracked: true
+            )
+        }
+    }
+
     func handleAuthenticationCallback(url: URL) async {
         if let authCode = url.queryParameters?["code"] {
             guard let oauth = await api.oauth.getAccessToken(authCode: authCode) else { return }

@@ -102,6 +102,14 @@ protocol Tracker: AnyObject, Sendable {
     ///   - mangaKey: The  key for the given manga.
     func canRegister(sourceKey: String, mangaKey: String) -> Bool
 
+    /// Fetch all manga in the user's list on this tracker.
+    ///
+    /// Used to compare the user's tracker list against the local library
+    /// and import missing titles.
+    ///
+    /// - Returns: An array of `TrackSearchItem` representing the user's tracked manga.
+    func getUserList() async throws -> [TrackSearchItem]
+
     /// Log out from the tracker.
     func logout() async throws
 }
@@ -115,4 +123,6 @@ extension Tracker {
     func canRegister(sourceKey: String, mangaKey: String) -> Bool {
         isLoggedIn
     }
+
+    func getUserList() async throws -> [TrackSearchItem] { [] }
 }

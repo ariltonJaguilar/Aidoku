@@ -123,4 +123,21 @@ extension MyAnimeListApi {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         _ = try? await self.requestData(urlRequest: request)
     }
+
+    func getUserMangaList() async -> [MyAnimeListManga] {
+        guard var url = URL(string: baseApiUrl + "/users/@me/mangalist") else { return [] }
+        url.queryParameters = [
+            "fields": "id,title,main_picture",
+            "limit": "1000",
+            "nsfw": "true"
+        ]
+        var allManga: [MyAnimeListManga] = []
+        var nextUrl: URL? = url
+        while let currentUrl = nextUrl {
+            guard let response: MyAnimeListSearchResponse = try? await self.request(url: currentUrl) else { break }
+            allManga.append(contentsOf: response.data.map { $0.node })
+            nextUrl = response.paging?.next.flatMap { URL(string: $0) }
+        }
+        return allManga
+    }
 }

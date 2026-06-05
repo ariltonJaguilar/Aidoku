@@ -67,6 +67,7 @@
 		FB077DA82E7DC5F900C9C214 /* CategoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077DA72E7DC5F700C9C214 /* CategoriesView.swift */; };
 		FB077DAA2E7DC77300C9C214 /* SettingsAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077DA92E7DC76F00C9C214 /* SettingsAboutView.swift */; };
 		FB077DAC2E7DC83100C9C214 /* SettingsTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077DAB2E7DC82E00C9C214 /* SettingsTrackingView.swift */; };
+		A6504FB83E2340F19077A4C1 /* TrackerImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4141125B4F47B682F98D95 /* TrackerImportView.swift */; };
 		FB077DAE2E7DC85A00C9C214 /* BackupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077DAD2E7DC85800C9C214 /* BackupsView.swift */; };
 		FB077DB02E7DCFFA00C9C214 /* String+Highlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB077DAF2E7DCFF700C9C214 /* String+Highlight.swift */; };
 		FB0AB8942F50B98300AF1451 /* BackupCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0AB8932F50B98000AF1451 /* BackupCategory.swift */; };
@@ -683,6 +684,7 @@
 		FB077DA72E7DC5F700C9C214 /* CategoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesView.swift; sourceTree = "<group>"; };
 		FB077DA92E7DC76F00C9C214 /* SettingsAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAboutView.swift; sourceTree = "<group>"; };
 		FB077DAB2E7DC82E00C9C214 /* SettingsTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTrackingView.swift; sourceTree = "<group>"; };
+		0F4141125B4F47B682F98D95 /* TrackerImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerImportView.swift; sourceTree = "<group>"; };
 		FB077DAD2E7DC85800C9C214 /* BackupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupsView.swift; sourceTree = "<group>"; };
 		FB077DAF2E7DCFF700C9C214 /* String+Highlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Highlight.swift"; sourceTree = "<group>"; };
 		FB0AB8922F50B81800AF1451 /* 0.8.2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = 0.8.2.xcdatamodel; sourceTree = "<group>"; };
@@ -2037,6 +2039,7 @@
 				FB077DA52E7DC5C300C9C214 /* SettingSearchResult.swift */,
 				FB077DA92E7DC76F00C9C214 /* SettingsAboutView.swift */,
 				FB077DAB2E7DC82E00C9C214 /* SettingsTrackingView.swift */,
+				0F4141125B4F47B682F98D95 /* TrackerImportView.swift */,
 				FB55C0AE2DF1E2650019A551 /* SourceListsView.swift */,
 				FB7984132E0C9F1D000761A9 /* UpscaleModelListView.swift */,
 				FB5E5D002E32BFC300843E27 /* TapZonesSelectView.swift */,
@@ -2751,6 +2754,7 @@
 				FB716DFC283DA2D400F1BB5D /* Logger.swift in Sources */,
 				FB2BE5E129522EE700FAD8A7 /* ReaderChapterListView.swift in Sources */,
 				FB077DAA2E7DC77300C9C214 /* SettingsAboutView.swift in Sources */,
+				A6504FB83E2340F19077A4C1 /* TrackerImportView.swift in Sources */,
 				FB1B51B528E35BEA00D3CE0E /* BaseCollectionViewController.swift in Sources */,
 				FB7C28932E898DD9009FF6AF /* BackupCreateView.swift in Sources */,
 				FBCA1B2D2889AEE0007149C5 /* BackupTrackItem.swift in Sources */,
